@@ -70,10 +70,10 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
   // Componente de Campo de Destaque (Estilo Placa, mas fonte Sans e alinhado)
   const HighlightField = ({ label, value }: { label: string, value: string }) => (
     <div className="flex flex-col items-center justify-center w-full">
-      <span className="text-[10px] text-slate-400 uppercase font-bold mb-0.5 tracking-wide">{label}</span>
+      <span className="text-[9px] text-slate-400 uppercase font-bold mb-0 tracking-wide">{label}</span>
       <div className={`
         ${isDarkMode ? 'text-blue-400' : 'text-blue-700'} 
-        text-xs font-bold font-sans 
+        text-[11px] font-bold font-sans 
         uppercase 
         truncate
         w-full
@@ -88,23 +88,23 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
   // Componente de Campo Secundário
   const InfoField = ({ label, value, align = 'left' }: { label: string, value: string, align?: 'left' | 'center' | 'right' }) => (
     <div className={`flex flex-col ${align === 'right' ? 'items-end' : (align === 'center' ? 'items-center' : 'items-start')}`}>
-       <span className="text-[10px] text-slate-400 uppercase font-bold mb-0.5">{label}</span>
-       <div className={`text-xs font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-600'} truncate`}>{value || '-'}</div>
+       <span className="text-[9px] text-slate-400 uppercase font-bold mb-0">{label}</span>
+       <div className={`text-[11px] font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-600'} truncate`}>{value || '-'}</div>
     </div>
   );
 
   return (
-    <div id={uniqueId} className={`p-4 rounded-xl shadow-sm border relative font-sans w-full mx-auto mb-3 transition-colors animate-fade-in-up ${isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+    <div id={uniqueId} className={`p-3 rounded-lg shadow-sm border relative font-sans w-full mx-auto mb-2 transition-colors animate-fade-in-up ${isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
       
       {/* Top Grid: Identificadores Principais (Alinhados) */}
-      <div className={`grid grid-cols-3 gap-4 mb-3 pb-3 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+      <div className={`grid grid-cols-3 gap-2 mb-2 pb-2 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
          <HighlightField label="Nº Série" value={data.nSerie} />
          <HighlightField label="Nota Fiscal" value={data.notaFiscal} />
          <HighlightField label="Certificado Garantia" value={data.certGarantia} />
       </div>
 
       {/* Rows: Especificações Técnicas */}
-      <div className="mb-4 space-y-3">
+      <div className="mb-3 space-y-2">
           {/* Row 1: Cert. Cardan & Fabricação (Extremos) */}
           <div className="flex justify-between items-center">
                <InfoField label="Cert. Cardan" value={data.certCardan} />
@@ -119,15 +119,15 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
       </div>
 
       {/* Product Highlight Box */}
-      <div className={`p-3 rounded-lg mb-3 ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
-        <div className="flex items-center justify-between mb-2">
+      <div className={`p-2.5 rounded-md mb-2 ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+        <div className="flex items-center justify-between mb-1.5">
             <div>
-                 <span className="text-[10px] text-slate-400 uppercase font-bold">Código</span>
+                 <span className="text-[9px] text-slate-400 uppercase font-bold">Código</span>
                  <div className="flex items-center gap-2">
-                    <span className={`font-mono font-bold text-sm ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{data.codProduto}</span>
+                    <span className={`font-mono font-bold text-xs ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{data.codProduto}</span>
                     <button 
                     onClick={copyToClipboard}
-                    className={`transition-all p-1 rounded-md ${
+                    className={`transition-all p-0.5 rounded-md ${
                         copied 
                         ? 'text-green-500 bg-green-50' 
                         : 'text-slate-300 hover:text-blue-500 hover:bg-slate-200'
@@ -140,50 +140,50 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
             </div>
         </div>
         <div>
-             <span className="text-[10px] text-slate-400 uppercase font-bold block">Descrição</span>
-             <div className={`text-sm font-bold leading-tight ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>
+             <span className="text-[9px] text-slate-400 uppercase font-bold block">Descrição</span>
+             <div className={`text-[11px] font-bold leading-tight ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>
                 {data.descProduto}
              </div>
         </div>
       </div>
 
       {/* Traceability Grid */}
-      <div className={`grid grid-cols-3 gap-2 mb-3 pt-3 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+      <div className={`grid grid-cols-3 gap-2 mb-2 pt-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
          <div className="flex flex-col">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Rast. Flange</span>
-            <span className="font-mono text-[10px] text-slate-500">{data.rastFlange}</span>
+            <span className="text-[9px] text-slate-400 uppercase font-bold block">Rast. Flange</span>
+            <span className="font-mono text-[9px] text-slate-500">{data.rastFlange}</span>
          </div>
          <div className="text-center flex flex-col items-center">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Ponteira</span>
-            <span className="font-mono text-[10px] text-slate-500">{data.ponteira}</span>
+            <span className="text-[9px] text-slate-400 uppercase font-bold block">Ponteira</span>
+            <span className="font-mono text-[9px] text-slate-500">{data.ponteira}</span>
          </div>
          <div className="text-right flex flex-col items-end">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Rast. Tubo</span>
-            <span className="font-mono text-[10px] text-slate-500">{data.rastTubo}</span>
+            <span className="text-[9px] text-slate-400 uppercase font-bold block">Rast. Tubo</span>
+            <span className="font-mono text-[9px] text-slate-500">{data.rastTubo}</span>
          </div>
       </div>
 
       {/* Footer Minimal Info & Print Button */}
-      <div className="pt-1 mt-1">
+      <div className="pt-1 mt-0.5">
         {/* Linha 1: Informações distribuídas (Restaurado) */}
-        <div className="flex justify-between items-center text-[10px] text-slate-400 font-medium">
+        <div className="flex justify-between items-center text-[9px] text-slate-400 font-medium">
             <span>Conc: <strong className="text-slate-600">{data.concessionaria}</strong></span>
             <span>Ped: <strong className="text-slate-600">{data.pedido}</strong></span>
             <span>OP: <strong className="text-slate-600">{data.op}</strong></span>
         </div>
 
         {/* Linha 2: Botão de Impressão (Abaixo do OP / Direita) */}
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-1">
             <button 
                 onClick={handlePrint}
                 className={`
                     print-btn
-                    p-1.5 rounded-lg transition-colors
+                    p-1 rounded-md transition-colors
                     ${isDarkMode ? 'text-slate-500 hover:text-blue-400 hover:bg-slate-800' : 'text-slate-300 hover:text-blue-600 hover:bg-slate-100'}
                 `}
                 title="Imprimir Cartão"
             >
-                <PrinterIcon className="w-4 h-4" />
+                <PrinterIcon className="w-3.5 h-3.5" />
             </button>
         </div>
       </div>

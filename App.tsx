@@ -11,7 +11,7 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "2.3.4-kit3eixo-ui",
+  version: "2.3.5-compact-ui",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -116,9 +116,6 @@ const App: React.FC = () => {
       // Se nenhum veículo selecionado, zerar tudo
       setKit3EixoQuantities({});
     }
-    
-    // Resetar cuicas também se necessário, ou manter a preferência do usuário.
-    // Optei por manter a preferência do usuário entre trocas de veículos por enquanto.
   }, [selectedVeiculo, kit3EixoData]);
 
   const loadData = async () => {
@@ -149,12 +146,6 @@ const App: React.FC = () => {
     setIsCuicaDupla(false);
     setIsEixoRedondo(false);
     setIsEixoTubular(false);
-  };
-
-  const resetToStableVersion = () => {
-    setActiveTab('kits');
-    handleClearFilters();
-    console.log(`Interface resetada para: ${UI_STABLE_CONFIG.version}`);
   };
 
   const isCredentialValid = useMemo(() => {
@@ -213,30 +204,18 @@ const App: React.FC = () => {
     
     // 2. Filtragem Dinâmica por Botões (Baseado na Coluna Configuração E Tipo como Fallback)
     result = result.filter(item => {
-      // Concatenamos a configuração e o tipo para verificar todas as palavras-chave possíveis.
-      // Isso corrige problemas onde a coluna configuração está vazia mas o nome do item diz "Tubular" ou "Redondo".
       const config = (item.configuracao || '').toUpperCase();
       const tipo = (item.tipo || '').toUpperCase();
       const fullText = `${config} ${tipo}`;
 
-      // Filtros de Eixo
-      // Se "Eixo Redondo" está ativo, EXCLUIMOS tudo que for RETANGULAR ou TUBULAR
       if (isEixoRedondo && (fullText.includes('RETANGULAR') || fullText.includes('TUBULAR'))) return false;
-      
-      // Se "Eixo Tubular" está ativo, EXCLUIMOS tudo que for REDONDO
       if (isEixoTubular && fullText.includes('REDONDO')) return false;
-
-      // Filtros de Cuica
-      // Se "Cuica Simples" está ativa, EXCLUIMOS tudo que for DUPLA
       if (isCuicaSimples && fullText.includes('DUPLA')) return false;
-      
-      // Se "Cuica Dupla" está ativa, EXCLUIMOS tudo que for SIMPLES
       if (isCuicaDupla && fullText.includes('SIMPLES')) return false;
 
       return true;
     });
 
-    // 3. Regra de exibição padrão (se não tiver veículo e não tiver busca, retorna vazio)
     if (!selectedVeiculo && !searchTerm.trim()) return [];
 
     return result;
@@ -258,7 +237,7 @@ const App: React.FC = () => {
       const codF = raw[start + 1]?.trim() || '';
       const codI = raw[start + 2]?.trim() || '';
       return {
-        veiculo: row.veiculo, // Add vehicle to item for search reference
+        veiculo: row.veiculo,
         tipoItem: label,
         codInterno: codI === label || codI === '-' ? '' : codI,
         codFreiocar: codF === label || codF === '-' ? '' : codF,
@@ -279,10 +258,8 @@ const App: React.FC = () => {
   };
 
   const filteredKitItems = useMemo(() => {
-    // Busca Global
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
-      // Iterate all rows and flatten items
       const allItems = kitRows.flatMap(row => extractKitItemsFromRow(row));
       
       return allItems.filter(item => 
@@ -293,8 +270,6 @@ const App: React.FC = () => {
         )
       );
     }
-
-    // Busca por Veículo (Comportamento Original)
     if (selectedVeiculo) {
       const row = kitRows.find(k => k.veiculo === selectedVeiculo);
       const items = row ? extractKitItemsFromRow(row) : [];
@@ -335,14 +310,6 @@ const App: React.FC = () => {
   const selectedKitObservation = useMemo(() => {
     if (activeTab !== 'kits' || !selectedVeiculo) return '';
     const row = kitRows.find(r => r.veiculo === selectedVeiculo);
-    // Assumindo que a observação está na coluna 36 (índice 36), após os 5 itens (7 colunas cada) + coluna 0 (veículo)
-    // 0 = Veículo
-    // 1-7 = Item 1
-    // 8-14 = Item 2
-    // 15-21 = Item 3
-    // 22-28 = Item 4
-    // 29-35 = Item 5
-    // 36 = Observação
     return row?.data[36]?.trim() || '';
   }, [activeTab, selectedVeiculo, kitRows]);
 
@@ -358,16 +325,15 @@ const App: React.FC = () => {
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Usuário</label>
-              <input type="text" value={loginUser} onChange={e => setLoginUser(e.target.value.toUpperCase())} className="w-full bg-slate-100 border-none p-2.5 text-xs rounded-lg focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-800 font-semibold uppercase" />
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">Usuário</label>
+              <input type="text" value={loginUser} onChange={e => setLoginUser(e.target.value.toUpperCase())} className="w-full bg-slate-100 border-none p-2 text-[11px] rounded-lg focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-800 font-semibold uppercase h-8" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Senha</label>
-              <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full bg-slate-100 border-none p-2.5 text-xs rounded-lg focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-800 font-semibold" />
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">Senha</label>
+              <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full bg-slate-100 border-none p-2 text-[11px] rounded-lg focus:ring-2 focus:ring-blue-500 transition-all outline-none text-slate-800 font-semibold h-8" />
             </div>
             <div className="flex flex-col items-center gap-3 pt-3">
-              <button type="submit" disabled={!isCredentialValid} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-full font-bold text-sm tracking-wide shadow-md hover:shadow-lg transition-all disabled:bg-slate-300 disabled:shadow-none uppercase">ENTRAR</button>
-              <button type="button" className="text-xs text-slate-400 hover:text-blue-500 transition-colors">Esqueceu sua senha?</button>
+              <button type="submit" disabled={!isCredentialValid} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-full font-bold text-xs tracking-wide shadow-md hover:shadow-lg transition-all disabled:bg-slate-300 disabled:shadow-none uppercase">ENTRAR</button>
             </div>
           </form>
         </div>
@@ -379,23 +345,22 @@ const App: React.FC = () => {
 
   const renderControls = (vehicles: string[], label: string, showSearchAndState: boolean = true) => {
     const activeStateObj = BRAZILIAN_STATES.find(s => s.uf === selectedUF);
-    // Extrai o número do rate (ex: "icms7" -> "7") e formata como "7% ICMS"
     const icmsValue = activeStateObj ? activeStateObj.rate.replace('icms', '') : '17';
     const icmsDisplay = `${icmsValue}% ICMS`;
 
     return (
-      <div className="flex flex-col gap-3 mb-6 animate-fade-in-up">
+      <div className="flex flex-col gap-3 mb-4 animate-fade-in-up">
         {/* Linha 1: Filtros Principais */}
-        <div className="flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex flex-col md:flex-row gap-3 items-end">
           
           {/* Seletor de Veículo */}
           <div className="flex-1 w-full">
-            <label className="block text-[10px] font-bold text-black uppercase mb-1 ml-1">{label}</label>
+            <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">{label}</label>
             <div className="relative">
               <select
                 value={selectedVeiculo}
                 onChange={e => setSelectedVeiculo(e.target.value)}
-                className="w-full h-9 pl-3 pr-8 border border-slate-300 rounded-lg bg-white text-xs font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all shadow-sm"
+                className="w-full h-8 pl-3 pr-8 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all shadow-sm"
               >
                 <option value="">Selecione...</option>
                 {vehicles.map(v => <option key={v} value={v}>{v}</option>)}
@@ -409,13 +374,13 @@ const App: React.FC = () => {
           {/* Filtros de Estado e ICMS (Apenas quando aplicável) */}
           {showSearchAndState && (
             <>
-                <div className="w-full md:w-64">
-                   <label className="block text-[10px] font-bold text-black uppercase mb-1 ml-1">Estado</label>
+                <div className="w-full md:w-56">
+                   <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">Estado</label>
                    <div className="relative">
                      <select
                        value={selectedUF}
                        onChange={e => setSelectedUF(e.target.value)}
-                       className="w-full h-9 pl-3 pr-8 border border-slate-300 rounded-lg bg-white text-xs font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all shadow-sm"
+                       className="w-full h-8 pl-3 pr-8 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all shadow-sm"
                      >
                        <option value="">Selecione...</option>
                        {BRAZILIAN_STATES.map(state => (
@@ -429,10 +394,10 @@ const App: React.FC = () => {
                 </div>
                 
                 {/* Campo Visual do ICMS */}
-                <div className="w-full md:w-32">
-                    <label className="block text-[10px] font-bold text-black uppercase mb-1 ml-1">ICMS</label>
-                    <div className="h-9 flex items-center px-3 bg-slate-100 border border-slate-200 rounded-lg whitespace-nowrap w-full">
-                        <span className="text-xs font-semibold text-slate-600 tracking-wide">
+                <div className="w-full md:w-28">
+                    <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">ICMS</label>
+                    <div className="h-8 flex items-center px-3 bg-slate-100 border border-slate-200 rounded-lg whitespace-nowrap w-full">
+                        <span className="text-[11px] font-semibold text-slate-600 tracking-wide">
                             {icmsDisplay}
                         </span>
                     </div>
@@ -444,7 +409,7 @@ const App: React.FC = () => {
           {!showSearchAndState && (
             <button 
                 onClick={handleClearFilters}
-                className="h-9 px-4 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100"
+                className="h-8 px-3 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100"
                 title="Limpar todos os filtros"
             >
                 Limpar
@@ -456,20 +421,20 @@ const App: React.FC = () => {
         {showSearchAndState && (
           <div className="flex gap-2 items-center w-full">
             <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <SearchIcon className="absolute left-3 top-2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Digite para pesquisar em todos os itens..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-xs font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
+                className="w-full h-8 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
               />
             </div>
             
             {/* Botão Limpar Inline Minimalista */}
             <button 
                 onClick={handleClearFilters}
-                className="h-9 px-4 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 whitespace-nowrap"
+                className="h-8 px-3 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 whitespace-nowrap"
                 title="Limpar todos os filtros"
             >
                 Limpar
@@ -492,7 +457,7 @@ const App: React.FC = () => {
   const showTable = selectedVeiculo || searchTerm;
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-xs">
       
       {/* SIDEBAR FLUTUANTE */}
       <aside 
@@ -500,28 +465,28 @@ const App: React.FC = () => {
           relative flex flex-col shadow-2xl z-20 transition-all duration-300 ease-in-out
           ${UI_STABLE_CONFIG.primaryColor}
           m-4 rounded-3xl h-[calc(100vh-2rem)]
-          ${isSidebarCollapsed ? 'w-20' : 'w-60'}
+          ${isSidebarCollapsed ? 'w-16' : 'w-56'}
         `}
       >
         {/* Toggle Button */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className="absolute -right-3 top-10 bg-white text-blue-600 rounded-full p-1.5 shadow-md z-30 border border-blue-50 hover:bg-slate-50 hover:scale-110 transition-transform"
+          className="absolute -right-3 top-8 bg-white text-blue-600 rounded-full p-1 shadow-md z-30 border border-blue-50 hover:bg-slate-50 hover:scale-110 transition-transform"
         >
-          {isSidebarCollapsed ? <ChevronRightIcon className="w-4 h-4" /> : <ChevronLeftIcon className="w-4 h-4" />}
+          {isSidebarCollapsed ? <ChevronRightIcon className="w-3.5 h-3.5" /> : <ChevronLeftIcon className="w-3.5 h-3.5" />}
         </button>
 
         {/* Sidebar Logo */}
-        <div className={`h-16 flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'px-6'} transition-all`}>
+        <div className={`h-14 flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'px-5'} transition-all`}>
           <img 
             src={isSidebarCollapsed ? UI_STABLE_CONFIG.collapsedLogoUrl : UI_STABLE_CONFIG.headerLogoUrl} 
             alt="Logo" 
-            className={`object-contain transition-all duration-300 ${isSidebarCollapsed ? 'h-5 w-auto' : 'h-5 w-auto'}`} 
+            className={`object-contain transition-all duration-300 ${isSidebarCollapsed ? 'h-4 w-auto' : 'h-4 w-auto'}`} 
           />
         </div>
 
         {/* Sidebar Menu */}
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto overflow-x-hidden py-4 custom-scrollbar-none">
+        <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto overflow-x-hidden py-3 custom-scrollbar-none">
           {menuItems.filter(m => m.visible).map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -530,18 +495,18 @@ const App: React.FC = () => {
                 onClick={() => { setActiveTab(item.id as TabType); handleClearFilters(); }}
                 className={`
                   w-full flex items-center rounded-lg font-medium transition-all duration-200 group relative
-                  ${isSidebarCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2 text-xs'} 
+                  ${isSidebarCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-1.5 text-[11px]'} 
                   ${isActive ? 'text-white bg-white/10' : 'text-blue-300 hover:text-white hover:bg-white/5'}
                 `}
                 title={isSidebarCollapsed ? item.label : ''}
               >
                 {/* Active Indicator Bar */}
                 {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"></span>
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"></span>
                 )}
 
                 <span className={`shrink-0 ${isActive ? 'text-white' : 'text-blue-300 group-hover:text-white'}`}>
-                  {item.icon}
+                  {React.cloneElement(item.icon as React.ReactElement<{ className?: string }>, { className: "w-3.5 h-3.5" })}
                 </span>
                 
                 <span className={`whitespace-nowrap transition-all duration-300 ${isSidebarCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
@@ -553,17 +518,17 @@ const App: React.FC = () => {
         </nav>
 
         {/* Sidebar Footer (Minimalist Logout) */}
-        <div className={`border-t border-blue-500/30 bg-blue-700/10 transition-all duration-300 ${isSidebarCollapsed ? 'p-2 py-4' : 'p-3'}`}>
+        <div className={`border-t border-blue-500/30 bg-blue-700/10 transition-all duration-300 ${isSidebarCollapsed ? 'p-2 py-3' : 'p-2.5'}`}>
           <button 
             onClick={handleLogout}
             className={`
               w-full flex items-center justify-center rounded-lg text-blue-300 hover:text-white hover:bg-white/5 transition-all
-              ${isSidebarCollapsed ? 'p-2' : 'gap-2 px-3 py-2'}
+              ${isSidebarCollapsed ? 'p-1.5' : 'gap-2 px-3 py-1.5'}
             `}
             title="Sair da conta"
           >
-            <LogoutIcon className="w-4 h-4" />
-            <span className={`text-xs font-medium tracking-wide ${isSidebarCollapsed ? 'hidden' : 'block'}`}>SAIR</span>
+            <LogoutIcon className="w-3.5 h-3.5" />
+            <span className={`text-[10px] font-medium tracking-wide ${isSidebarCollapsed ? 'hidden' : 'block'}`}>SAIR</span>
           </button>
         </div>
       </aside>
@@ -572,51 +537,51 @@ const App: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/50">
         
         {/* Top Header - Flutuante e Fixo com Botão Carrinho */}
-        <header className="bg-white mx-6 mt-6 p-4 rounded-2xl shadow-sm flex items-center justify-between z-10 sticky top-6">
+        <header className="bg-white mx-5 mt-5 p-3 rounded-xl shadow-sm flex items-center justify-between z-10 sticky top-5">
           <div>
-            <h1 className="text-lg font-bold text-slate-700 tracking-tight ml-2">{currentTabLabel}</h1>
+            <h1 className="text-base font-bold text-slate-700 tracking-tight ml-2">{currentTabLabel}</h1>
           </div>
           
           {/* Botão de Carrinho no Cabeçalho */}
           <button
              onClick={() => setActiveTab('pedidos')}
              className={`
-                relative group p-2 rounded-lg transition-all duration-200
+                relative group p-1.5 rounded-lg transition-all duration-200
                 ${activeTab === 'pedidos' ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-blue-600 hover:bg-slate-50'}
              `}
              title="Ir para Pedidos"
           >
-             <ShoppingCartIcon className="w-5 h-5" />
+             <ShoppingCartIcon className="w-4 h-4" />
              {totals.total > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white shadow-sm"></span>
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full border border-white shadow-sm"></span>
              )}
           </button>
         </header>
 
         {/* Scrollable Content */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-          <div className="max-w-6xl mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto p-5 md:p-6 custom-scrollbar">
+          <div className="max-w-6xl mx-auto space-y-5">
             
             {activeTab === 'catracas' && (
               <div className="animate-fade-in-up">
                 {renderControls(uniqueVehicles, "Modelo do Veículo", true)}
                 {showTable ? (
                   <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up">
-                    <table className="w-full text-left text-xs md:text-sm">
-                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
                         <tr>
-                          <th className="px-3 py-3">Veículo</th>
-                          <th className="px-2 py-3">Cód. Interno</th>
-                          <th className="px-2 py-3">Cód. Freiocar</th>
-                          <th className="px-2 py-3">Modelo</th>
-                          <th className="px-2 py-3">Aplicação</th>
-                          <th className="px-2 py-3">Lado</th>
-                          <th className="px-1 py-3 text-center">A</th>
-                          <th className="px-1 py-3 text-center">B</th>
-                          <th className="px-1 py-3 text-center">C</th>
-                          <th className="px-1 py-3 text-center">D</th>
-                          <th className="px-2 py-3 text-right">Valor</th>
-                          <th className="px-2 py-3 text-right">Qtd.</th>
+                          <th className="px-3 py-2.5">Veículo</th>
+                          <th className="px-2 py-2.5">Cód. Interno</th>
+                          <th className="px-2 py-2.5">Cód. Freiocar</th>
+                          <th className="px-2 py-2.5">Modelo</th>
+                          <th className="px-2 py-2.5">Aplicação</th>
+                          <th className="px-2 py-2.5">Lado</th>
+                          <th className="px-1 py-2.5 text-center">A</th>
+                          <th className="px-1 py-2.5 text-center">B</th>
+                          <th className="px-1 py-2.5 text-center">C</th>
+                          <th className="px-1 py-2.5 text-center">D</th>
+                          <th className="px-2 py-2.5 text-right">Valor</th>
+                          <th className="px-2 py-2.5 text-right">Qtd.</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -628,8 +593,8 @@ const App: React.FC = () => {
                   </div>
                 ) : (
                    <div className="text-center py-12 text-slate-400">
-                      <SlackAdjusterIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                      <p className="text-sm">Selecione um modelo de veículo acima para visualizar as catracas compatíveis.</p>
+                      <SlackAdjusterIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                      <p className="text-xs">Selecione um modelo de veículo acima para visualizar as catracas compatíveis.</p>
                    </div>
                 )}
               </div>
@@ -640,23 +605,23 @@ const App: React.FC = () => {
                 {renderControls(uniqueKitsVehicles, "Modelo do Veículo", true)}
 
                 {selectedKitObservation && (
-                  <div className="mb-6 p-4 rounded-xl border border-amber-200 bg-amber-50 flex gap-3 animate-fade-in-up shadow-sm">
-                     <InfoIcon className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <div className="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 flex gap-3 animate-fade-in-up shadow-sm">
+                     <InfoIcon className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                      <div>
-                        <h3 className="text-xs font-bold text-amber-700 uppercase mb-1">Observações do Veículo</h3>
-                        <p className="text-sm text-slate-700 leading-relaxed">{selectedKitObservation}</p>
+                        <h3 className="text-[10px] font-bold text-amber-700 uppercase mb-0.5">Observações do Veículo</h3>
+                        <p className="text-[11px] text-slate-700 leading-snug">{selectedKitObservation}</p>
                      </div>
                   </div>
                 )}
 
                 {showTable ? (
                   <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up">
-                    <table className="w-full text-left text-xs md:text-sm">
-                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
                         <tr>
                           {/* Se estiver buscando globalmente, mostra coluna de veículo. Se tiver veículo selecionado (ou nada e sem busca), esconde */}
-                          {(searchTerm.length > 0) && <th className="p-4">Veículo</th>}
-                          <th className="p-4">Tipo</th><th className="p-4">Cód. Interno</th><th className="p-4">Cód. Freiocar</th><th className="p-4">Descrição</th><th className="p-4 text-right">Valor</th><th className="p-4 text-right">Qtd.</th>
+                          {(searchTerm.length > 0) && <th className="p-2.5">Veículo</th>}
+                          <th className="p-2.5">Tipo</th><th className="p-2.5">Cód. Interno</th><th className="p-2.5">Cód. Freiocar</th><th className="p-2.5">Descrição</th><th className="p-2.5 text-right">Valor</th><th className="p-2.5 text-right">Qtd.</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -674,15 +639,15 @@ const App: React.FC = () => {
                       </tbody>
                     </table>
                     {filteredKitItems.length === 0 && (
-                        <div className="p-8 text-center text-slate-400 text-sm">
+                        <div className="p-6 text-center text-slate-400 text-xs">
                             {searchTerm ? "Nenhum item encontrado para esta busca." : "Selecione um veículo ou use a busca para visualizar os kits."}
                         </div>
                     )}
                   </div>
                 ) : (
                     <div className="text-center py-12 text-slate-400">
-                      <BrakeDiscIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                      <p className="text-sm">Selecione um modelo de veículo acima para visualizar os kits de freio.</p>
+                      <BrakeDiscIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                      <p className="text-xs">Selecione um modelo de veículo acima para visualizar os kits de freio.</p>
                    </div>
                 )}
               </div>
@@ -693,7 +658,7 @@ const App: React.FC = () => {
                 {renderControls(unique3EixoVehicles, "Modelo do Veículo", false)}
 
                 {/* Novos Botões Eixo (Acima dos Botões Cuica) */}
-                <div className="flex items-center gap-6 mb-3 px-1 -mt-4">
+                <div className="flex items-center gap-6 mb-2 px-1 -mt-3">
                     <div className="flex items-center gap-2">
                         <button 
                           onClick={() => {
@@ -701,11 +666,11 @@ const App: React.FC = () => {
                              setIsEixoRedondo(newState);
                              if (newState) setIsEixoTubular(false);
                           }} 
-                          className={`relative w-9 h-5 rounded-full transition-colors ${isEixoRedondo ? 'bg-green-500' : 'bg-slate-200'}`}
+                          className={`relative w-8 h-4 rounded-full transition-colors ${isEixoRedondo ? 'bg-green-500' : 'bg-slate-200'}`}
                         >
-                          <span className={`absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isEixoRedondo ? 'translate-x-4' : ''}`} />
+                          <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isEixoRedondo ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">EIXO REDONDO</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase">EIXO REDONDO</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -715,16 +680,16 @@ const App: React.FC = () => {
                              setIsEixoTubular(newState);
                              if (newState) setIsEixoRedondo(false);
                           }} 
-                           className={`relative w-9 h-5 rounded-full transition-colors ${isEixoTubular ? 'bg-green-500' : 'bg-slate-200'}`}
+                           className={`relative w-8 h-4 rounded-full transition-colors ${isEixoTubular ? 'bg-green-500' : 'bg-slate-200'}`}
                         >
-                          <span className={`absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isEixoTubular ? 'translate-x-4' : ''}`} />
+                          <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isEixoTubular ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">EIXO TUBULAR RETANGULAR</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase">EIXO TUBULAR RETANGULAR</span>
                     </div>
                 </div>
 
                 {/* Novos Botões Cuica (Ajustada margem superior para espaçamento correto) */}
-                <div className="flex items-center gap-6 mb-6 px-1">
+                <div className="flex items-center gap-6 mb-4 px-1">
                     <div className="flex items-center gap-2">
                         <button 
                           onClick={() => {
@@ -732,11 +697,11 @@ const App: React.FC = () => {
                              setIsCuicaSimples(newState);
                              if (newState) setIsCuicaDupla(false);
                           }} 
-                          className={`relative w-9 h-5 rounded-full transition-colors ${isCuicaSimples ? 'bg-green-500' : 'bg-slate-200'}`}
+                          className={`relative w-8 h-4 rounded-full transition-colors ${isCuicaSimples ? 'bg-green-500' : 'bg-slate-200'}`}
                         >
-                          <span className={`absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isCuicaSimples ? 'translate-x-4' : ''}`} />
+                          <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isCuicaSimples ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">CUICA SIMPLES</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase">CUICA SIMPLES</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -746,20 +711,20 @@ const App: React.FC = () => {
                              setIsCuicaDupla(newState);
                              if (newState) setIsCuicaSimples(false);
                           }} 
-                           className={`relative w-9 h-5 rounded-full transition-colors ${isCuicaDupla ? 'bg-green-500' : 'bg-slate-200'}`}
+                           className={`relative w-8 h-4 rounded-full transition-colors ${isCuicaDupla ? 'bg-green-500' : 'bg-slate-200'}`}
                         >
-                          <span className={`absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isCuicaDupla ? 'translate-x-4' : ''}`} />
+                          <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isCuicaDupla ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">CUICA DUPLA</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase">CUICA DUPLA</span>
                     </div>
                 </div>
 
                 {showTable ? (
                   <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up">
-                    <table className="w-full text-left text-xs md:text-sm">
-                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
                         {/* Nova Ordem: Tipo, Cód. Interno, Cód. Freiocar, Descrição, Valor, QTD */}
-                        <tr><th className="p-4">Tipo</th><th className="p-4">Cód. Interno</th><th className="p-4">Cód. Freiocar</th><th className="p-4">Descrição</th><th className="p-4 text-right">Valor</th><th className="p-4 text-right">Qtd.</th></tr>
+                        <tr><th className="p-2.5">Tipo</th><th className="p-2.5">Cód. Interno</th><th className="p-2.5">Cód. Freiocar</th><th className="p-2.5">Descrição</th><th className="p-2.5 text-right">Valor</th><th className="p-2.5 text-right">Qtd.</th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filtered3EixoItems.map(item => (
@@ -770,31 +735,31 @@ const App: React.FC = () => {
                   </div>
                 ) : (
                     <div className="text-center py-12 text-slate-400">
-                      <AxleIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                      <p className="text-sm">Selecione um modelo de veículo acima para visualizar os kits de 3º eixo.</p>
+                      <AxleIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                      <p className="text-xs">Selecione um modelo de veículo acima para visualizar os kits de 3º eixo.</p>
                    </div>
                 )}
               </div>
             )}
 
             {activeTab === 'adaptacoes' && (
-              <div className="grid grid-cols-1 gap-6 animate-fade-in-up">
-                <div className="flex flex-col gap-3 mb-6 animate-fade-in-up">
-                    <label className="block text-[10px] font-bold text-black uppercase mb-1 ml-1">PESQUISAR</label>
+              <div className="grid grid-cols-1 gap-4 animate-fade-in-up">
+                <div className="flex flex-col gap-2 mb-4 animate-fade-in-up">
+                    <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">PESQUISAR</label>
                     <div className="flex gap-2 items-center w-full">
                         <div className="relative flex-1">
-                            <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                            <SearchIcon className="absolute left-3 top-2 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
                                 placeholder="Pesquisar por nota fiscal, nº de série ou certificado..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full h-9 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-xs font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
+                                className="w-full h-8 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
                             />
                         </div>
                         <button 
                             onClick={handleClearFilters}
-                            className="h-9 px-4 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 whitespace-nowrap"
+                            className="h-8 px-3 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 whitespace-nowrap"
                             title="Limpar pesquisa"
                         >
                             Limpar
@@ -803,9 +768,9 @@ const App: React.FC = () => {
                 </div>
                 {filteredAdaptacoes.map((item, idx) => <AdaptacaoCard key={idx} data={item} />)}
                 {filteredAdaptacoes.length === 0 && (
-                      <div className="p-12 text-center text-slate-400">
-                          <TruckIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                          <p className="text-sm">Nenhuma adaptação encontrada para esta pesquisa.</p>
+                      <div className="p-10 text-center text-slate-400">
+                          <TruckIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                          <p className="text-xs">Nenhuma adaptação encontrada para esta pesquisa.</p>
                       </div>
                 )}
               </div>
@@ -813,29 +778,29 @@ const App: React.FC = () => {
 
             {activeTab === 'pedidos' && (
               <div className="animate-fade-in-up">
-                 <div className="p-12 text-center text-slate-400">
-                    <ShoppingCartIcon className="w-16 h-16 mx-auto mb-4 opacity-10" />
+                 <div className="p-10 text-center text-slate-400">
+                    <ShoppingCartIcon className="w-14 h-14 mx-auto mb-3 opacity-10" />
                  </div>
               </div>
             )}
 
             {activeTab !== 'adaptacoes' && activeTab !== 'pedidos' && totals.subtotal > 0 && (
-              <div className="p-6 rounded-xl border border-blue-100 shadow-lg bg-white relative overflow-hidden animate-slide-in-right mb-6">
+              <div className="p-5 rounded-xl border border-blue-100 shadow-lg bg-white relative overflow-hidden animate-slide-in-right mb-4">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-10 -mt-10 blur-2xl opacity-50 pointer-events-none"></div>
                 <div className="relative z-10">
-                  <div className="flex justify-between items-center mb-2"><span className="text-sm font-medium text-slate-500">Subtotal</span><span className="font-bold text-blue-500">{formatCurrency(totals.subtotal)}</span></div>
-                  <div className="flex justify-between items-center mb-4"><span className="text-sm font-medium text-slate-500">IPI (3.25%)</span><span className="font-bold text-blue-300">{formatCurrency(totals.ipi)}</span></div>
-                  <div className="flex justify-between items-end border-t border-dashed border-slate-200 pt-4">
+                  <div className="flex justify-between items-center mb-1"><span className="text-[11px] font-medium text-slate-500">Subtotal</span><span className="font-bold text-blue-500 text-xs">{formatCurrency(totals.subtotal)}</span></div>
+                  <div className="flex justify-between items-center mb-3"><span className="text-[11px] font-medium text-slate-500">IPI (3.25%)</span><span className="font-bold text-blue-300 text-xs">{formatCurrency(totals.ipi)}</span></div>
+                  <div className="flex justify-between items-end border-t border-dashed border-slate-200 pt-3">
                     <div>
-                      <span className="text-sm font-bold text-blue-600 block uppercase tracking-wide">TOTAL</span>
+                      <span className="text-xs font-bold text-blue-600 block uppercase tracking-wide">TOTAL</span>
                       <div className="flex items-center gap-2 mt-2">
-                        <button onClick={() => setIsConsumerFinal(!isConsumerFinal)} className={`relative w-9 h-5 rounded-full transition-colors ${isConsumerFinal ? 'bg-green-500' : 'bg-slate-200'}`}>
-                          <span className={`absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isConsumerFinal ? 'translate-x-4' : ''}`} />
+                        <button onClick={() => setIsConsumerFinal(!isConsumerFinal)} className={`relative w-8 h-4 rounded-full transition-colors ${isConsumerFinal ? 'bg-green-500' : 'bg-slate-200'}`}>
+                          <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isConsumerFinal ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-xs font-bold text-slate-400">Consumidor Final (+5%)</span>
+                        <span className="text-[10px] font-bold text-slate-400">Consumidor Final (+5%)</span>
                       </div>
                     </div>
-                    <div className="text-2xl font-black text-emerald-600 tracking-tight">{formatCurrency(totals.total)}</div>
+                    <div className="text-xl font-black text-emerald-600 tracking-tight">{formatCurrency(totals.total)}</div>
                   </div>
                 </div>
               </div>
@@ -843,17 +808,17 @@ const App: React.FC = () => {
           </div>
         </main>
 
-        {/* Novo Rodapé Fixo Flutuante */}
-        <footer className="bg-white mx-6 mb-6 py-3 px-6 rounded-2xl shadow-sm flex justify-between items-center text-xs z-20 shrink-0 h-12 border border-slate-100">
+        {/* Novo Rodapé Fixo Flutuante Compacto */}
+        <footer className="bg-white mx-5 mb-5 py-2 px-4 rounded-xl shadow-sm flex justify-between items-center text-[10px] z-20 shrink-0 h-10 border border-slate-100">
             <div className="text-slate-400 font-medium">© 2026 Cardancorp.app</div>
-            <div className="flex items-center gap-4">
-                <span className="text-[10px] text-slate-300 font-mono tracking-tight">v{UI_STABLE_CONFIG.version}</span>
+            <div className="flex items-center gap-3">
+                <span className="text-[9px] text-slate-300 font-mono tracking-tight">v{UI_STABLE_CONFIG.version}</span>
                 <button 
                   onClick={loadData} 
                   title="Sincronizar dados"
-                  className="text-slate-400 hover:text-blue-600 hover:bg-slate-50 transition-all p-1.5 rounded-full group"
+                  className="text-slate-400 hover:text-blue-600 hover:bg-slate-50 transition-all p-1 rounded-full group"
                 >
-                   <RefreshIcon className={`w-3.5 h-3.5 ${loadingState === LoadingState.LOADING ? 'animate-spin text-blue-500' : 'group-hover:rotate-180 transition-transform duration-500'}`} /> 
+                   <RefreshIcon className={`w-3 h-3 ${loadingState === LoadingState.LOADING ? 'animate-spin text-blue-500' : 'group-hover:rotate-180 transition-transform duration-500'}`} /> 
                 </button>
             </div>
         </footer>

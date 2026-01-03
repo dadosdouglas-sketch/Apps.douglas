@@ -41,30 +41,30 @@ const DetailCard: React.FC<DetailCardProps> = ({
   const { value } = getPriceDisplay();
   const hasPrice = value && value !== '0,00' && value.trim() !== '' && value !== '-';
 
-  const descriptionClass = `py-4 px-2 text-xs align-middle ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`;
-  const dimClass = `py-4 px-2 text-center text-xs w-10 align-middle ${isDarkMode ? 'text-slate-500' : 'text-slate-600'}`;
+  const descriptionClass = `py-2.5 px-2 text-[11px] align-middle ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`;
+  const dimClass = `py-2.5 px-2 text-center text-[11px] w-10 align-middle ${isDarkMode ? 'text-slate-500' : 'text-slate-600'}`;
 
   return (
     <tr className={`transition-colors group border-b last:border-0 ${isDarkMode ? 'hover:bg-slate-800/50 border-slate-800' : 'hover:bg-slate-50 border-slate-100'}`}>
-      <td className="py-4 pl-3 pr-2 w-[85px] align-middle">
-        <span className={`font-bold text-xs block leading-tight whitespace-normal ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{part.veiculo}</span>
+      <td className="py-2.5 pl-3 pr-2 w-[85px] align-middle">
+        <span className={`font-bold text-[11px] block leading-tight whitespace-normal ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{part.veiculo}</span>
       </td>
 
-      <td className="py-4 px-2 whitespace-nowrap align-middle">
-        <div className="flex items-center gap-2 text-xs font-medium">
+      <td className="py-2.5 px-2 whitespace-nowrap align-middle">
+        <div className="flex items-center gap-2 text-[11px] font-medium">
           <span className={isDarkMode ? 'text-slate-500' : 'text-slate-500'}>{part.codInterno}</span>
           <button 
             onClick={() => copyToClipboard(part.codInterno)}
-            className={`transition-all p-1 rounded-md ${copied ? 'text-green-500 bg-green-50' : 'text-slate-300 hover:text-blue-500 hover:bg-slate-100'}`}
+            className={`transition-all p-0.5 rounded-md ${copied ? 'text-green-500 bg-green-50' : 'text-slate-300 hover:text-blue-500 hover:bg-slate-100'}`}
             title={copied ? "Copiado!" : "Copiar código"}
           >
-            {copied ? <CheckIcon className="w-3.5 h-3.5" /> : <CopyIcon className="w-3.5 h-3.5" />}
+            {copied ? <CheckIcon className="w-3 h-3" /> : <CopyIcon className="w-3 h-3" />}
           </button>
         </div>
       </td>
 
-      <td className="py-4 px-2 whitespace-nowrap align-middle">
-        <span className={`font-semibold text-xs ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{part.codFreiocar}</span>
+      <td className="py-2.5 px-2 whitespace-nowrap align-middle">
+        <span className={`font-semibold text-[11px] ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{part.codFreiocar}</span>
       </td>
 
       <td className={`${descriptionClass} whitespace-nowrap`}>
@@ -85,28 +85,28 @@ const DetailCard: React.FC<DetailCardProps> = ({
       <td className={dimClass}>{part.dimC}</td>
       <td className={dimClass}>{part.dimD}</td>
 
-      <td className="py-4 px-2 whitespace-nowrap text-right pr-4 align-middle">
+      <td className="py-2.5 px-2 whitespace-nowrap text-right pr-4 align-middle">
         <div className="flex flex-col items-end gap-0.5">
-           <span className={`font-bold text-xs ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>R$ {value}</span>
+           <span className={`font-bold text-[11px] ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>R$ {value}</span>
         </div>
       </td>
 
-      <td className="py-4 px-2 text-right pr-4 align-middle w-24">
+      <td className="py-2.5 px-2 text-right pr-4 align-middle w-24">
         {hasPrice && (
           <div className="flex items-center justify-end gap-1">
             <button 
               onClick={onDecrement}
-              className={`w-6 h-6 flex items-center justify-center rounded border text-xs transition-colors cursor-pointer disabled:opacity-50 ${isDarkMode ? 'border-slate-700 text-slate-500 hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+              className={`w-5 h-5 flex items-center justify-center rounded border text-[10px] transition-colors cursor-pointer disabled:opacity-50 ${isDarkMode ? 'border-slate-700 text-slate-500 hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
               disabled={quantity === 0}
             >
               -
             </button>
-            <div className={`w-8 text-center text-xs font-medium ${quantity > 0 ? (isDarkMode ? 'text-blue-400 font-bold' : 'text-blue-600 font-bold') : (isDarkMode ? 'text-slate-400' : 'text-slate-700')}`}>
+            <div className={`w-6 text-center text-[11px] font-medium ${quantity > 0 ? (isDarkMode ? 'text-blue-400 font-bold' : 'text-blue-600 font-bold') : (isDarkMode ? 'text-slate-400' : 'text-slate-700')}`}>
               {quantity}
             </div>
             <button 
               onClick={onIncrement}
-              className={`w-6 h-6 flex items-center justify-center rounded border text-xs transition-colors cursor-pointer ${isDarkMode ? 'border-slate-700 text-slate-500 hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+              className={`w-5 h-5 flex items-center justify-center rounded border text-[10px] transition-colors cursor-pointer ${isDarkMode ? 'border-slate-700 text-slate-500 hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
             >
               +
             </button>
