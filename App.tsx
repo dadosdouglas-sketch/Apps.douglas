@@ -781,15 +781,24 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 gap-6 animate-fade-in-up">
                 <div className="flex flex-col gap-3 mb-6 animate-fade-in-up">
                     <label className="block text-[10px] font-bold text-black uppercase mb-1 ml-1">PESQUISAR</label>
-                    <div className="relative w-full">
-                        <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Pesquisar por nota fiscal, nº de série ou certificado..."
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full h-9 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-xs font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
-                        />
+                    <div className="flex gap-2 items-center w-full">
+                        <div className="relative flex-1">
+                            <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Pesquisar por nota fiscal, nº de série ou certificado..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full h-9 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-xs font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
+                            />
+                        </div>
+                        <button 
+                            onClick={handleClearFilters}
+                            className="h-9 px-4 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 whitespace-nowrap"
+                            title="Limpar pesquisa"
+                        >
+                            Limpar
+                        </button>
                     </div>
                 </div>
                 {filteredAdaptacoes.map((item, idx) => <AdaptacaoCard key={idx} data={item} />)}
