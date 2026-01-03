@@ -60,6 +60,17 @@ export interface UserCredential {
   senha: string;
 }
 
+export interface CartItem {
+  id: string; // codInterno ou identificador unico
+  codInterno: string;
+  codFreiocar: string;
+  descricao: string;
+  valorUnitario: number;
+  quantidade: number;
+  tipo: 'catraca' | 'kit' | 'kit3eixo';
+  origemIcms?: string; // Para validação de regra (ex: icms17)
+}
+
 export enum LoadingState {
   IDLE = 'IDLE',
   LOADING = 'LOADING',
