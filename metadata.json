@@ -1,0 +1,5 @@
+{
+  "name": "CardanCorp.app",
+  "description": "Visualizador de catálogo de peças em tempo real conectado ao Google Sheets.",
+  "requestFramePermissions": []
+}

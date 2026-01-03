@@ -1,0 +1,72 @@
+export interface PartData {
+  veiculo: string;
+  codInterno: string;
+  codFreiocar: string;
+  modelo: string;
+  aplicacao: string;
+  dimA: string;
+  dimB: string;
+  dimC: string;
+  dimD: string;
+  lado: string;
+  icms17: string;
+  icms12: string;
+  icms7: string;
+}
+
+export interface KitItemData {
+  veiculo?: string;
+  tipoItem: string;
+  codInterno: string;
+  codFreiocar: string;
+  descricao: string;
+  icms17: string;
+  icms12: string;
+  icms7: string;
+  found: boolean;
+}
+
+export interface Kit3EixoData {
+  veiculo: string;
+  tipo: string;
+  codInterno: string;
+  codFreiocar: string;
+  descricao: string;
+  qtdPadrao: number;
+  valor: string;
+  configuracao: string;
+}
+
+export interface AdaptacaoData {
+  nSerie: string;
+  notaFiscal: string;
+  dataFabricacao: string;
+  certCardan: string;
+  certGarantia: string;
+  modeloCaminhao: string;
+  pbt: string;
+  codProduto: string;
+  descProduto: string;
+  rastFlange: string;
+  ponteira: string;
+  rastTubo: string;
+  concessionaria: string;
+  pedido: string;
+  op: string;
+}
+
+export interface UserCredential {
+  usuario: string;
+  senha: string;
+}
+
+export enum LoadingState {
+  IDLE = 'IDLE',
+  LOADING = 'LOADING',
+  SUCCESS = 'SUCCESS',
+  ERROR = 'ERROR'
+}
+
+export interface SheetConfig {
+  url: string;
+}
