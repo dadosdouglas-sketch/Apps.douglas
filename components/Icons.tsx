@@ -91,6 +91,28 @@ export const AxleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+export const BrakeComponentsIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Ruler/Caliper Top */}
+    <path d="M3 5h14a2 2 0 0 1 2 2v2H3V5z" />
+    <path d="M7 5v4" />
+    <path d="M11 5v4" />
+    <path d="M15 5v4" />
+    {/* Gear Bottom Left */}
+    <path d="M6.5 16.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" />
+    <path d="M6.5 16.5l1-2" />
+    <path d="M9.5 18.5l2-1" />
+    <path d="M3.5 18.5l-2-1" />
+    {/* Pads/Stack Middle Right */}
+    <path d="M13 14h8" />
+    <path d="M13 17h8" />
+    <path d="M13 20h8" />
+    {/* Piston/Rod Small */}
+    <path d="M3 12h8" />
+    <rect x="3" y="11" width="2" height="2" />
+  </svg>
+);
+
 export const DollarSignIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <line x1="12" y1="1" x2="12" y2="23"></line>

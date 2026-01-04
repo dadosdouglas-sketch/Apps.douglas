@@ -5,13 +5,13 @@ import DetailCard from './components/DetailCard';
 import KitRow from './components/KitRow';
 import Kit3EixoRow from './components/Kit3EixoRow';
 import AdaptacaoCard from './components/AdaptacaoCard';
-import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon } from './components/Icons';
+import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon } from './components/Icons';
 
 // =========================================================
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "2.5.5-logo-fix",
+  version: "2.6.1-order-ui-fix",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -53,7 +53,7 @@ const BRAZILIAN_STATES = [
   { name: 'Tocantins', uf: 'TO', rate: 'icms7' },
 ];
 
-type TabType = 'catracas' | 'kits' | 'kit3eixo' | 'adaptacoes' | 'pedidos';
+type TabType = 'catracas' | 'kits' | 'kit3eixo' | 'adaptacoes' | 'pedidos' | 'componentes';
 
 interface PendingItem {
     item: any;
@@ -113,26 +113,46 @@ const App: React.FC = () => {
   const [isEixoRedondo, setIsEixoRedondo] = useState<boolean>(false);
   const [isEixoTubular, setIsEixoTubular] = useState<boolean>(false);
 
-  // Estados do Carrinho
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [cartRate, setCartRate] = useState<string | null>(null);
-
-  // Estado dos Dados do Cliente
-  const [clientData, setClientData] = useState<ClientData>({
-    nome: '',
-    cnpj: '',
-    contato: '',
-    telefone: '',
-    email: '',
-    cidade: '',
-    uf: '',
-    representante: '',
-    pedido: '',
-    pagamento: '',
-    transportadora: '',
-    tipoFrete: '',
-    observacao: ''
+  // Estados do Carrinho (Com Persistência)
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+        const saved = localStorage.getItem('cartItems');
+        return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+        return [];
+    }
   });
+
+  const [cartRate, setCartRate] = useState<string | null>(() => {
+    return localStorage.getItem('cartRate');
+  });
+
+  // Estado dos Dados do Cliente (Com Persistência)
+  const [clientData, setClientData] = useState<ClientData>(() => {
+    try {
+        const saved = localStorage.getItem('clientData');
+        return saved ? JSON.parse(saved) : {
+            nome: '', cnpj: '', contato: '', telefone: '', email: '', cidade: '', uf: '',
+            representante: '', pedido: '', pagamento: '', transportadora: '', tipoFrete: '', observacao: ''
+        };
+    } catch (e) {
+        return {
+            nome: '', cnpj: '', contato: '', telefone: '', email: '', cidade: '', uf: '',
+            representante: '', pedido: '', pagamento: '', transportadora: '', tipoFrete: '', observacao: ''
+        };
+    }
+  });
+
+  // Efeitos para salvar no LocalStorage
+  useEffect(() => {
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    if (cartRate) localStorage.setItem('cartRate', cartRate);
+    else localStorage.removeItem('cartRate');
+  }, [cartItems, cartRate]);
+
+  useEffect(() => {
+    localStorage.setItem('clientData', JSON.stringify(clientData));
+  }, [clientData]);
 
   // Estados do Modal de Conflito de ICMS
   const [showIcmsModal, setShowIcmsModal] = useState(false);
@@ -216,8 +236,9 @@ const App: React.FC = () => {
     setLoginPass('');
     setActiveTab('kits');
     handleClearFilters();
-    setCartItems([]); // Limpar carrinho ao sair? Opção de design.
-    setCartRate(null);
+    setCartItems([]); // Limpa da memória
+    setCartRate(null); // Limpa da memória
+    // O useEffect atualizará o localStorage automaticamente para refletir o array vazio
   };
 
   const activeRate = useMemo<'icms17' | 'icms12' | 'icms7'>(() => {
@@ -549,25 +570,33 @@ const App: React.FC = () => {
         <body class="bg-white">
             <div class="content-wrapper">
                 <!-- Novo Cabeçalho Minimalista com Texto -->
-                <div class="flex justify-between items-start mb-6 border-b border-slate-200 pb-4">
-                    <div class="flex flex-col">
+                <div class="mb-6 border-b border-slate-200 pb-4">
+                    <div class="flex justify-between items-start mb-3">
                         <!-- Logo Novo com Tamanho Reduzido -->
-                        <img src="${printHeaderImg}" alt="CardanCorp" class="h-7 w-auto object-contain mb-3 self-start" />
+                        <img src="${printHeaderImg}" alt="CardanCorp" class="h-7 w-auto object-contain" />
                         
-                        <!-- Dados da Empresa (Texto Minimalista) -->
-                        <div class="text-[9px] text-slate-500 leading-snug">
-                            <p class="font-bold text-slate-800 uppercase mb-0.5">CARDANCORP</p>
-                            <p class="mb-0.5">CNPJ: 92.765.361/0001-47</p>
-                            <p>Endereço: Estr. Mun. Vicente Menezes, 515 - Linha 40,</p>
-                            <p class="mb-1">Caxias do Sul - RS, 95044-030</p>
-                            <p><span class="font-bold">Telefone:</span> (54) 3537-5000</p>
-                            <p><span class="font-bold">E-mail:</span> administrativo@cardancorp.com.br</p>
+                        <div class="text-right pt-1">
+                             <p class="text-[10px] font-medium text-slate-500 mb-1">${dateStr}, ${timeStr}</p>
+                             ${clientData.pedido ? `<p class="text-[10px] font-bold text-slate-700">PEDIDO: ${clientData.pedido}</p>` : ''}
                         </div>
                     </div>
 
-                    <div class="text-right pt-2">
-                         <p class="text-[10px] font-medium text-slate-500 mb-1">${dateStr}, ${timeStr}</p>
-                         ${clientData.pedido ? `<p class="text-[10px] font-bold text-slate-700">PEDIDO: ${clientData.pedido}</p>` : ''}
+                    <!-- Dados da Empresa (Texto Minimalista) Largura Total -->
+                    <div class="text-[9px] text-slate-500 leading-snug w-full">
+                        <p class="font-bold text-slate-800 uppercase mb-0.5">CARDANCORP</p>
+                        <p class="mb-1">CNPJ: 92.765.361/0001-47</p>
+                        
+                        <!-- Linha Endereço e Telefone -->
+                        <div class="flex justify-between items-center mt-1 pt-1 border-t border-slate-100">
+                            <span>Endereço: Estr. Mun. Vicente Menezes, 515 - Linha 40,</span>
+                            <span><span class="font-bold">Telefone:</span> (54) 3537-5000</span>
+                        </div>
+                        
+                        <!-- Linha Cidade e Email -->
+                        <div class="flex justify-between items-center">
+                            <span>Caxias do Sul - RS, 95044-030</span>
+                            <span><span class="font-bold">E-mail:</span> administrativo@cardancorp.com.br</span>
+                        </div>
                     </div>
                 </div>
 
@@ -682,6 +711,7 @@ const App: React.FC = () => {
             <!-- Footer (Simulando rodapé do navegador) -->
             <div class="print-footer">
                 <span>${dateStr}, ${timeStr}</span>
+                <span class="font-bold">www.cardancorp.com.br</span>
                 <span>CardanCorp</span>
             </div>
 
@@ -837,6 +867,7 @@ const App: React.FC = () => {
   const menuItems = [
     { id: 'kits', label: 'Kits de Freio', icon: <BrakeDiscIcon className="w-4 h-4" />, visible: !isRestrictedUser },
     { id: 'catracas', label: 'Catracas de Freio', icon: <SlackAdjusterIcon className="w-4 h-4" />, visible: !isRestrictedUser },
+    { id: 'componentes', label: 'Componentes de freio', icon: <BrakeComponentsIcon className="w-4 h-4" />, visible: !isRestrictedUser },
     { id: 'kit3eixo', label: 'Kit 3º Eixo', icon: <AxleIcon className="w-4 h-4" />, visible: true },
     { id: 'adaptacoes', label: 'Adaptações 3º Eixo', icon: <TruckIcon className="w-4 h-4" />, visible: !isRestrictedUser },
     { id: 'pedidos', label: 'Pedido de itens', icon: <ShoppingCartIcon className="w-4 h-4" />, visible: true },
@@ -1056,6 +1087,16 @@ const App: React.FC = () => {
               </div>
             )}
 
+            {activeTab === 'componentes' && (
+              <div className="animate-fade-in-up">
+                 {/* Container vazio para futuras seções */}
+                 <div className="text-center py-12 text-slate-400">
+                    <BrakeComponentsIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                    <p className="text-xs">Esta seção está em construção.</p>
+                 </div>
+              </div>
+            )}
+
             {activeTab === 'kit3eixo' && (
               <div className="animate-fade-in-up">
                 {renderControls(unique3EixoVehicles, "Modelo do Veículo", false)}
@@ -1153,245 +1194,228 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {activeTab === 'adaptacoes' && (
-              <div className="grid grid-cols-1 gap-4 animate-fade-in-up">
-                <div className="flex flex-col gap-2 mb-4 animate-fade-in-up">
-                    <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">PESQUISAR</label>
-                    <div className="flex gap-2 items-center w-full">
-                        <div className="relative flex-1">
-                            <SearchIcon className="absolute left-3 top-2 h-4 w-4 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Pesquisar por nota fiscal, nº de série ou certificado..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full h-8 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
-                            />
-                        </div>
-                        <button 
-                            onClick={handleClearFilters}
-                            className="h-8 px-3 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 whitespace-nowrap"
-                            title="Limpar pesquisa"
-                        >
-                            Limpar
-                        </button>
-                    </div>
-                </div>
-                {filteredAdaptacoes.map((item, idx) => <AdaptacaoCard key={idx} data={item} />)}
-                {filteredAdaptacoes.length === 0 && (
-                      <div className="p-10 text-center text-slate-400">
-                          <TruckIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                          <p className="text-xs">Nenhuma adaptação encontrada para esta pesquisa.</p>
-                      </div>
-                )}
-              </div>
-            )}
-
             {activeTab === 'pedidos' && (
               <div className="animate-fade-in-up">
-                 {/* Seção Dados do Cliente */}
-                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm animate-fade-in-up mb-4">
-                    <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
-                        <div className="flex items-center gap-2">
-                            <UserIcon className="w-3.5 h-3.5 text-blue-500" />
-                            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Dados do Cliente</h3>
-                        </div>
-                        <button 
-                            onClick={handleClearCart}
-                            className="text-[9px] font-bold text-red-500 hover:text-red-700 uppercase tracking-wide px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                        >
-                            Limpar Pedido
-                        </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                        {/* Linha 1 */}
-                        <div className="md:col-span-5">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Nome do Cliente</label>
-                            <input 
-                                type="text" 
-                                value={clientData.nome}
-                                onChange={(e) => handleClientDataChange('nome', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="Digite o nome completo"
-                            />
-                        </div>
-                        <div className="md:col-span-3">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">CNPJ</label>
-                            <input 
-                                type="text" 
-                                value={clientData.cnpj}
-                                onChange={(e) => handleClientDataChange('cnpj', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="00.000.000/0000-00"
-                            />
-                        </div>
-                        <div className="md:col-span-4">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Contato</label>
-                            <input 
-                                type="text" 
-                                value={clientData.contato}
-                                onChange={(e) => handleClientDataChange('contato', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="Nome do responsável"
-                            />
-                        </div>
-
-                        {/* Linha 2 */}
-                        <div className="md:col-span-3">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Telefone</label>
-                            <input 
-                                type="text" 
-                                value={clientData.telefone}
-                                onChange={(e) => handleClientDataChange('telefone', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="(00) 00000-0000"
-                            />
-                        </div>
-                        <div className="md:col-span-5">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">E-mail</label>
-                            <input 
-                                type="email" 
-                                value={clientData.email}
-                                onChange={(e) => handleClientDataChange('email', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="email@exemplo.com"
-                            />
-                        </div>
-                        <div className="md:col-span-3">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Cidade</label>
-                            <input 
-                                type="text" 
-                                value={clientData.cidade}
-                                onChange={(e) => handleClientDataChange('cidade', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="Cidade"
-                            />
-                        </div>
-                        <div className="md:col-span-1">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">UF</label>
-                            <select
-                                value={clientData.uf}
-                                onChange={(e) => handleClientDataChange('uf', e.target.value)}
-                                className="w-full h-8 px-1 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                            >
-                                <option value="">-</option>
-                                {BRAZILIAN_STATES.map(state => (
-                                    <option key={state.uf} value={state.uf}>{state.uf}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                         {/* Linha 3 - Novos Campos */}
-                        <div className="md:col-span-3">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Representante</label>
-                            <input 
-                                type="text" 
-                                value={clientData.representante}
-                                onChange={(e) => handleClientDataChange('representante', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="Nome do representante"
-                            />
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Pedido N°</label>
-                            <input 
-                                type="text" 
-                                value={clientData.pedido}
-                                onChange={(e) => handleClientDataChange('pedido', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="0000"
-                            />
-                        </div>
-                        <div className="md:col-span-3">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Forma de Pagamento</label>
-                            <input 
-                                type="text" 
-                                value={clientData.pagamento}
-                                onChange={(e) => handleClientDataChange('pagamento', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="Ex: 30/60 dias"
-                            />
-                        </div>
-                        <div className="md:col-span-3">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Transportadora</label>
-                            <input 
-                                type="text" 
-                                value={clientData.transportadora}
-                                onChange={(e) => handleClientDataChange('transportadora', e.target.value)}
-                                className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
-                                placeholder="Nome da transportadora"
-                            />
-                        </div>
-                        <div className="md:col-span-1">
-                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Frete</label>
-                            <select
-                                value={clientData.tipoFrete}
-                                onChange={(e) => handleClientDataChange('tipoFrete', e.target.value)}
-                                className="w-full h-8 px-1 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                            >
-                                <option value="">-</option>
-                                <option value="CIF">CIF</option>
-                                <option value="FOB">FOB</option>
-                            </select>
-                        </div>
-                    </div>
-                 </div>
-
                  {cartItems.length > 0 ? (
-                    <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up mb-4">
-                        <div className="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">Itens do Pedido</span>
+                    <>
+                        {/* Seção Dados do Cliente */}
+                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm animate-fade-in-up mb-4">
+                            <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+                                <div className="flex items-center gap-2">
+                                    <UserIcon className="w-3.5 h-3.5 text-blue-500" />
+                                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Dados do Cliente</h3>
+                                </div>
+                                <button 
+                                    onClick={handleClearCart}
+                                    className="text-[9px] font-bold text-red-500 hover:text-red-700 uppercase tracking-wide px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                                >
+                                    Limpar Pedido
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                {/* Linha 1 */}
+                                <div className="md:col-span-5">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Nome do Cliente</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.nome}
+                                        onChange={(e) => handleClientDataChange('nome', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="Digite o nome completo"
+                                    />
+                                </div>
+                                <div className="md:col-span-3">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">CNPJ</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.cnpj}
+                                        onChange={(e) => handleClientDataChange('cnpj', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="00.000.000/0000-00"
+                                    />
+                                </div>
+                                <div className="md:col-span-4">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Contato</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.contato}
+                                        onChange={(e) => handleClientDataChange('contato', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="Nome do responsável"
+                                    />
+                                </div>
+
+                                {/* Linha 2 */}
+                                <div className="md:col-span-3">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Telefone</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.telefone}
+                                        onChange={(e) => handleClientDataChange('telefone', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="(00) 00000-0000"
+                                    />
+                                </div>
+                                <div className="md:col-span-5">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">E-mail</label>
+                                    <input 
+                                        type="email" 
+                                        value={clientData.email}
+                                        onChange={(e) => handleClientDataChange('email', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="email@exemplo.com"
+                                    />
+                                </div>
+                                <div className="md:col-span-3">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Cidade</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.cidade}
+                                        onChange={(e) => handleClientDataChange('cidade', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="Cidade"
+                                    />
+                                </div>
+                                <div className="md:col-span-1">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">UF</label>
+                                    <select
+                                        value={clientData.uf}
+                                        onChange={(e) => handleClientDataChange('uf', e.target.value)}
+                                        className="w-full h-8 px-1 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                    >
+                                        <option value="">-</option>
+                                        {BRAZILIAN_STATES.map(state => (
+                                            <option key={state.uf} value={state.uf}>{state.uf}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Linha 3 - Novos Campos */}
+                                <div className="md:col-span-3">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Representante</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.representante}
+                                        onChange={(e) => handleClientDataChange('representante', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="Nome do representante"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Pedido N°</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.pedido}
+                                        onChange={(e) => handleClientDataChange('pedido', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="0000"
+                                    />
+                                </div>
+                                <div className="md:col-span-3">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Forma de Pagamento</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.pagamento}
+                                        onChange={(e) => handleClientDataChange('pagamento', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="Ex: 30/60 dias"
+                                    />
+                                </div>
+                                <div className="md:col-span-3">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Transportadora</label>
+                                    <input 
+                                        type="text" 
+                                        value={clientData.transportadora}
+                                        onChange={(e) => handleClientDataChange('transportadora', e.target.value)}
+                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        placeholder="Nome da transportadora"
+                                    />
+                                </div>
+                                <div className="md:col-span-1">
+                                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Frete</label>
+                                    <select
+                                        value={clientData.tipoFrete}
+                                        onChange={(e) => handleClientDataChange('tipoFrete', e.target.value)}
+                                        className="w-full h-8 px-1 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                    >
+                                        <option value="">-</option>
+                                        <option value="CIF">CIF</option>
+                                        <option value="FOB">FOB</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <table className="w-full text-left">
-                            <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                                <tr>
-                                    <th className="p-2.5">Cód. Interno</th>
-                                    <th className="p-2.5">Cód. Freiocar</th>
-                                    <th className="p-2.5">Descrição</th>
-                                    <th className="p-2.5 text-right">Valor</th>
-                                    <th className="p-2.5 text-center">Qtd.</th>
-                                    <th className="p-2.5 text-center">Remover</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {cartItems.map((item) => (
-                                    <tr key={item.id} className="transition-colors hover:bg-slate-50">
-                                        <td className="p-2.5 text-[11px] font-medium text-slate-600 align-middle">{item.codInterno}</td>
-                                        <td className="p-2.5 text-[11px] font-medium text-blue-600 align-middle">{item.codFreiocar}</td>
-                                        <td className="p-2.5 text-[11px] text-slate-600 align-middle uppercase">{item.descricao}</td>
-                                        <td className="p-2.5 text-[11px] font-bold text-green-600 text-right align-middle">{formatCurrency(item.valorUnitario)}</td>
-                                        <td className="p-2.5 align-middle">
-                                            <div className="flex items-center justify-center gap-1">
-                                                <button 
-                                                onClick={() => handleUpdateCartQuantity(item.id, -1)}
-                                                className="w-5 h-5 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-[10px] hover:bg-slate-100 transition-colors"
-                                                >
-                                                -
-                                                </button>
-                                                <span className="w-6 text-center text-[11px] font-bold text-blue-600">{item.quantidade}</span>
-                                                <button 
-                                                onClick={() => handleUpdateCartQuantity(item.id, 1)}
-                                                className="w-5 h-5 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-[10px] hover:bg-slate-100 transition-colors"
-                                                >
-                                                +
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className="p-2.5 text-center align-middle">
-                                            <button 
-                                                onClick={() => handleRemoveFromCart(item.id)}
-                                                className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
-                                                title="Remover item"
-                                            >
-                                                <TrashIcon className="w-3.5 h-3.5" />
-                                            </button>
-                                        </td>
+
+                        {/* Tabela de Itens */}
+                        <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up mb-4">
+                            <div className="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Itens do Pedido</span>
+                            </div>
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                    <tr>
+                                        <th className="p-2.5">Cód. Interno</th>
+                                        <th className="p-2.5">Cód. Freiocar</th>
+                                        <th className="p-2.5">Descrição</th>
+                                        <th className="p-2.5 text-right">Valor</th>
+                                        <th className="p-2.5 text-center">Qtd.</th>
+                                        <th className="p-2.5 text-center">Remover</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {cartItems.map((item) => (
+                                        <tr key={item.id} className="transition-colors hover:bg-slate-50">
+                                            <td className="p-2.5 text-[11px] font-medium text-slate-600 align-middle">{item.codInterno}</td>
+                                            <td className="p-2.5 text-[11px] font-medium text-blue-600 align-middle">{item.codFreiocar}</td>
+                                            <td className="p-2.5 text-[11px] text-slate-600 align-middle uppercase">{item.descricao}</td>
+                                            <td className="p-2.5 text-[11px] font-bold text-green-600 text-right align-middle">{formatCurrency(item.valorUnitario)}</td>
+                                            <td className="p-2.5 align-middle">
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <button 
+                                                    onClick={() => handleUpdateCartQuantity(item.id, -1)}
+                                                    className="w-5 h-5 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-[10px] hover:bg-slate-100 transition-colors"
+                                                    >
+                                                    -
+                                                    </button>
+                                                    <span className="w-6 text-center text-[11px] font-bold text-blue-600">{item.quantidade}</span>
+                                                    <button 
+                                                    onClick={() => handleUpdateCartQuantity(item.id, 1)}
+                                                    className="w-5 h-5 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-[10px] hover:bg-slate-100 transition-colors"
+                                                    >
+                                                    +
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td className="p-2.5 text-center align-middle">
+                                                <button 
+                                                    onClick={() => handleRemoveFromCart(item.id)}
+                                                    className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
+                                                    title="Remover item"
+                                                >
+                                                    <TrashIcon className="w-3.5 h-3.5" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    
+                        {/* Novo Campo: Observações do Pedido */}
+                        <div className="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 flex gap-3 shadow-sm">
+                            <InfoIcon className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="w-full">
+                                <h3 className="text-[10px] font-bold text-amber-700 uppercase mb-1">Observações do Pedido</h3>
+                                <textarea
+                                    value={clientData.observacao}
+                                    onChange={(e) => handleClientDataChange('observacao', e.target.value)}
+                                    className="w-full bg-transparent border-none p-0 text-[11px] text-slate-700 leading-snug focus:ring-0 placeholder:text-amber-700/50 resize-y min-h-[40px] outline-none"
+                                    placeholder="Digite aqui observações adicionais para este pedido..."
+                                />
+                            </div>
+                        </div>
+                    </>
                  ) : (
                     <div className="p-10 text-center text-slate-400">
                         <ShoppingCartIcon className="w-14 h-14 mx-auto mb-3 opacity-10" />
@@ -1399,21 +1423,6 @@ const App: React.FC = () => {
                         <p className="text-[10px] mt-1 opacity-60">Adicione itens clicando no ícone do carrinho nas outras abas.</p>
                     </div>
                  )}
-
-                 {/* Novo Campo: Observações do Pedido */}
-                 <div className="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 flex gap-3 shadow-sm">
-                     <InfoIcon className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                     <div className="w-full">
-                        <h3 className="text-[10px] font-bold text-amber-700 uppercase mb-1">Observações do Pedido</h3>
-                        <textarea
-                            value={clientData.observacao}
-                            onChange={(e) => handleClientDataChange('observacao', e.target.value)}
-                            className="w-full bg-transparent border-none p-0 text-[11px] text-slate-700 leading-snug focus:ring-0 placeholder:text-amber-700/50 resize-y min-h-[40px] outline-none"
-                            placeholder="Digite aqui observações adicionais para este pedido..."
-                        />
-                     </div>
-                 </div>
-
               </div>
             )}
 
