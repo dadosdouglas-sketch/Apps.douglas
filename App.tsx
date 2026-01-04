@@ -5,13 +5,13 @@ import DetailCard from './components/DetailCard';
 import KitRow from './components/KitRow';
 import Kit3EixoRow from './components/Kit3EixoRow';
 import AdaptacaoCard from './components/AdaptacaoCard';
-import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon } from './components/Icons';
+import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon, SunIcon, MoonStarsIcon } from './components/Icons';
 
 // =========================================================
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "2.6.1-order-ui-fix",
+  version: "2.7.0-dark-mode",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -83,6 +83,21 @@ const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('kits');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
+  // Theme State
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('theme');
+        return saved === 'dark';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
   
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
@@ -774,12 +789,12 @@ const App: React.FC = () => {
           
           {/* Seletor de Veículo */}
           <div className="flex-1 w-full">
-            <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">{label}</label>
+            <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-300' : 'text-black'}`}>{label}</label>
             <div className="relative">
               <select
                 value={selectedVeiculo}
                 onChange={e => setSelectedVeiculo(e.target.value)}
-                className="w-full h-8 pl-3 pr-8 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all shadow-sm"
+                className={`w-full h-8 pl-3 pr-8 border rounded-lg text-[11px] font-medium outline-none appearance-none transition-all shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-800 border-slate-600 text-slate-200' : 'bg-white border-slate-300 text-slate-700'}`}
               >
                 <option value="">Selecione...</option>
                 {vehicles.map(v => <option key={v} value={v}>{v}</option>)}
@@ -794,12 +809,12 @@ const App: React.FC = () => {
           {showSearchAndState && (
             <>
                 <div className="w-full md:w-56">
-                   <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">Estado</label>
+                   <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-300' : 'text-black'}`}>Estado</label>
                    <div className="relative">
                      <select
                        value={selectedUF}
                        onChange={e => setSelectedUF(e.target.value)}
-                       className="w-full h-8 pl-3 pr-8 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all shadow-sm"
+                       className={`w-full h-8 pl-3 pr-8 border rounded-lg text-[11px] font-medium outline-none appearance-none transition-all shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-800 border-slate-600 text-slate-200' : 'bg-white border-slate-300 text-slate-700'}`}
                      >
                        <option value="">Selecione...</option>
                        {BRAZILIAN_STATES.map(state => (
@@ -814,9 +829,9 @@ const App: React.FC = () => {
                 
                 {/* Campo Visual do ICMS */}
                 <div className="w-full md:w-28">
-                    <label className="block text-[9px] font-bold text-black uppercase mb-1 ml-1">ICMS</label>
-                    <div className="h-8 flex items-center px-3 bg-slate-100 border border-slate-200 rounded-lg whitespace-nowrap w-full">
-                        <span className="text-[11px] font-semibold text-slate-600 tracking-wide">
+                    <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-300' : 'text-black'}`}>ICMS</label>
+                    <div className={`h-8 flex items-center px-3 border rounded-lg whitespace-nowrap w-full ${isDarkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-100 border-slate-200'}`}>
+                        <span className={`text-[11px] font-semibold tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                             {icmsDisplay}
                         </span>
                     </div>
@@ -846,7 +861,7 @@ const App: React.FC = () => {
                 placeholder="Digite para pesquisar em todos os itens..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full h-8 pl-9 pr-3 border border-slate-300 rounded-lg bg-white text-[11px] font-medium text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
+                className={`w-full h-8 pl-9 pr-3 border rounded-lg text-[11px] font-medium outline-none transition-all shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-800 border-slate-600 text-slate-200 placeholder-slate-500' : 'bg-white border-slate-300 text-slate-700'}`}
               />
             </div>
             
@@ -877,13 +892,13 @@ const App: React.FC = () => {
   const showTable = selectedVeiculo || searchTerm;
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-xs relative">
+    <div className={`flex h-screen overflow-hidden font-sans text-xs relative transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
       {/* SIDEBAR FLUTUANTE */}
       <aside 
         className={`
           relative flex flex-col shadow-2xl z-20 transition-all duration-300 ease-in-out
-          ${UI_STABLE_CONFIG.primaryColor}
+          ${isDarkMode ? 'bg-slate-800' : UI_STABLE_CONFIG.primaryColor}
           m-4 rounded-3xl h-[calc(100vh-2rem)]
           ${isSidebarCollapsed ? 'w-16' : 'w-56'}
         `}
@@ -891,7 +906,7 @@ const App: React.FC = () => {
         {/* Toggle Button */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className="absolute -right-3 top-8 bg-white text-blue-600 rounded-full p-1 shadow-md z-30 border border-blue-50 hover:bg-slate-50 hover:scale-110 transition-transform"
+          className={`absolute -right-3 top-8 text-blue-600 rounded-full p-1 shadow-md z-30 border hover:scale-110 transition-transform ${isDarkMode ? 'bg-slate-800 border-slate-700 text-blue-400 hover:bg-slate-700' : 'bg-white border-blue-50 hover:bg-slate-50'}`}
         >
           {isSidebarCollapsed ? <ChevronRightIcon className="w-3.5 h-3.5" /> : <ChevronLeftIcon className="w-3.5 h-3.5" />}
         </button>
@@ -938,7 +953,7 @@ const App: React.FC = () => {
         </nav>
 
         {/* Sidebar Footer (Minimalist Logout) */}
-        <div className={`border-t border-blue-500/30 bg-blue-700/10 transition-all duration-300 ${isSidebarCollapsed ? 'p-2 py-3' : 'p-2.5'}`}>
+        <div className={`border-t transition-all duration-300 ${isSidebarCollapsed ? 'p-2 py-3' : 'p-2.5'} ${isDarkMode ? 'border-slate-700 bg-black/20' : 'border-blue-500/30 bg-blue-700/10'}`}>
           <button 
             onClick={handleLogout}
             className={`
@@ -954,12 +969,12 @@ const App: React.FC = () => {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/50">
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isDarkMode ? 'bg-slate-900/50' : 'bg-slate-50/50'}`}>
         
         {/* Top Header - Flutuante e Fixo com Botão Carrinho */}
-        <header className="bg-white mx-5 mt-5 p-3 rounded-xl shadow-sm flex items-center justify-between z-10 sticky top-5">
+        <header className={`mx-5 mt-5 p-3 rounded-xl shadow-sm flex items-center justify-between z-10 sticky top-5 border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-transparent'}`}>
           <div>
-            <h1 className="text-base font-bold text-slate-700 tracking-tight ml-2">{currentTabLabel}</h1>
+            <h1 className={`text-base font-bold tracking-tight ml-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-700'}`}>{currentTabLabel}</h1>
           </div>
           
           {/* Botão de Carrinho no Cabeçalho */}
@@ -988,9 +1003,9 @@ const App: React.FC = () => {
               <div className="animate-fade-in-up">
                 {renderControls(uniqueVehicles, "Modelo do Veículo", true)}
                 {showTable ? (
-                  <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up">
+                  <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
                     <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                      <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
                         <tr>
                           <th className="px-3 py-2.5">Veículo</th>
                           <th className="px-2 py-2.5">Cód. Interno</th>
@@ -1007,7 +1022,7 @@ const App: React.FC = () => {
                           <th className="px-2 py-2.5 text-center">ADIC.</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
                         {filteredCatracas.map(part => (
                           <DetailCard 
                              key={part.codInterno} 
@@ -1018,6 +1033,7 @@ const App: React.FC = () => {
                              onDecrement={() => setCatracaQuantities(p => ({...p, [part.codInterno]: Math.max(0, (p[part.codInterno] || 0) - 1)}))}
                              onAddToCart={() => handleAddToCart(part, 'catraca', activeRate === 'icms12' ? part.icms12 : (activeRate === 'icms7' ? part.icms7 : part.icms17), Math.max(1, catracaQuantities[part.codInterno] || 0))}
                              isInCart={cartItems.some(i => i.id === part.codInterno)}
+                             isDarkMode={isDarkMode}
                           />
                         ))}
                       </tbody>
@@ -1037,26 +1053,26 @@ const App: React.FC = () => {
                 {renderControls(uniqueKitsVehicles, "Modelo do Veículo", true)}
 
                 {selectedKitObservation && (
-                  <div className="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 flex gap-3 animate-fade-in-up shadow-sm">
+                  <div className={`mb-4 p-3 rounded-lg border flex gap-3 animate-fade-in-up shadow-sm ${isDarkMode ? 'bg-amber-900/20 border-amber-900/40' : 'bg-amber-50 border-amber-200'}`}>
                      <InfoIcon className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                      <div>
                         <h3 className="text-[10px] font-bold text-amber-700 uppercase mb-0.5">Observações do Veículo</h3>
-                        <p className="text-[11px] text-slate-700 leading-snug">{selectedKitObservation}</p>
+                        <p className={`text-[11px] leading-snug ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{selectedKitObservation}</p>
                      </div>
                   </div>
                 )}
 
                 {showTable ? (
-                  <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up">
+                  <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
                     <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                      <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
                         <tr>
                           {/* Se estiver buscando globalmente, mostra coluna de veículo. Se tiver veículo selecionado (ou nada e sem busca), esconde */}
                           {(searchTerm.length > 0) && <th className="p-2.5">Veículo</th>}
                           <th className="p-2.5">Tipo</th><th className="p-2.5">Cód. Interno</th><th className="p-2.5">Cód. Freiocar</th><th className="p-2.5">Descrição</th><th className="p-2.5 text-right">Valor</th><th className="p-2.5 text-center">Qtd.</th><th className="p-2.5 text-center">ADIC.</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
                         {filteredKitItems.map((kit, idx) => (
                           <KitRow 
                               key={`${kit.tipoItem}-${idx}`} 
@@ -1067,7 +1083,8 @@ const App: React.FC = () => {
                               onIncrement={() => setKitQuantities(p => ({...p, [kit.tipoItem]: (p[kit.tipoItem] || 0) + 1}))} 
                               onDecrement={() => setKitQuantities(p => ({...p, [kit.tipoItem]: Math.max(0, (p[kit.tipoItem] || 0) - 1)}))} 
                               onAddToCart={() => handleAddToCart(kit, 'kit', activeRate === 'icms12' ? kit.icms12 : (activeRate === 'icms7' ? kit.icms7 : kit.icms17), Math.max(1, kitQuantities[kit.tipoItem] || 0))}
-                              isInCart={cartItems.some(i => i.id === kit.tipoItem)} // Kits usam tipoItem como ID se não tiver codInterno único
+                              isInCart={cartItems.some(i => i.id === (kit.codInterno || kit.tipoItem))}
+                              isDarkMode={isDarkMode}
                           />
                         ))}
                       </tbody>
@@ -1110,11 +1127,11 @@ const App: React.FC = () => {
                              setIsEixoRedondo(newState);
                              if (newState) setIsEixoTubular(false);
                           }} 
-                          className={`relative w-8 h-4 rounded-full transition-colors ${isEixoRedondo ? 'bg-green-500' : 'bg-slate-200'}`}
+                          className={`relative w-8 h-4 rounded-full transition-colors ${isEixoRedondo ? 'bg-green-500' : (isDarkMode ? 'bg-slate-700' : 'bg-slate-200')}`}
                         >
                           <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isEixoRedondo ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase">EIXO REDONDO</span>
+                        <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>EIXO REDONDO</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -1124,11 +1141,11 @@ const App: React.FC = () => {
                              setIsEixoTubular(newState);
                              if (newState) setIsEixoRedondo(false);
                           }} 
-                           className={`relative w-8 h-4 rounded-full transition-colors ${isEixoTubular ? 'bg-green-500' : 'bg-slate-200'}`}
+                           className={`relative w-8 h-4 rounded-full transition-colors ${isEixoTubular ? 'bg-green-500' : (isDarkMode ? 'bg-slate-700' : 'bg-slate-200')}`}
                         >
                           <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isEixoTubular ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase">EIXO TUBULAR RETANGULAR</span>
+                        <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>EIXO TUBULAR RETANGULAR</span>
                     </div>
                 </div>
 
@@ -1141,11 +1158,11 @@ const App: React.FC = () => {
                              setIsCuicaSimples(newState);
                              if (newState) setIsCuicaDupla(false);
                           }} 
-                          className={`relative w-8 h-4 rounded-full transition-colors ${isCuicaSimples ? 'bg-green-500' : 'bg-slate-200'}`}
+                          className={`relative w-8 h-4 rounded-full transition-colors ${isCuicaSimples ? 'bg-green-500' : (isDarkMode ? 'bg-slate-700' : 'bg-slate-200')}`}
                         >
                           <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isCuicaSimples ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase">CUICA SIMPLES</span>
+                        <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>CUICA SIMPLES</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -1155,22 +1172,22 @@ const App: React.FC = () => {
                              setIsCuicaDupla(newState);
                              if (newState) setIsCuicaSimples(false);
                           }} 
-                           className={`relative w-8 h-4 rounded-full transition-colors ${isCuicaDupla ? 'bg-green-500' : 'bg-slate-200'}`}
+                           className={`relative w-8 h-4 rounded-full transition-colors ${isCuicaDupla ? 'bg-green-500' : (isDarkMode ? 'bg-slate-700' : 'bg-slate-200')}`}
                         >
                           <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isCuicaDupla ? 'translate-x-4' : ''}`} />
                         </button>
-                        <span className="text-[9px] font-bold text-slate-500 uppercase">CUICA DUPLA</span>
+                        <span className={`text-[9px] font-bold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>CUICA DUPLA</span>
                     </div>
                 </div>
 
                 {showTable ? (
-                  <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up">
+                  <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
                     <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                      <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
                         {/* Nova Ordem: Tipo, Cód. Interno, Cód. Freiocar, Descrição, Valor, QTD, ADIC. */}
                         <tr><th className="p-2.5">Tipo</th><th className="p-2.5">Cód. Interno</th><th className="p-2.5">Cód. Freiocar</th><th className="p-2.5">Descrição</th><th className="p-2.5 text-right">Valor</th><th className="p-2.5 text-center">Qtd.</th><th className="p-2.5 text-center">ADIC.</th></tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
                         {filtered3EixoItems.map(item => (
                           <Kit3EixoRow 
                               key={item.codInterno} 
@@ -1180,6 +1197,7 @@ const App: React.FC = () => {
                               onDecrement={() => setKit3EixoQuantities(p => ({...p, [item.codInterno]: Math.max(0, (p[item.codInterno] || 0) - 1)}))}
                               onAddToCart={() => handleAddToCart(item, 'kit3eixo', item.valor, Math.max(1, kit3EixoQuantities[item.codInterno] || 0))}
                               isInCart={cartItems.some(i => i.id === item.codInterno)}
+                              isDarkMode={isDarkMode}
                           />
                         ))}
                       </tbody>
@@ -1194,13 +1212,47 @@ const App: React.FC = () => {
               </div>
             )}
 
+            {activeTab === 'adaptacoes' && (
+              <div className="grid grid-cols-1 gap-4 animate-fade-in-up">
+                <div className="flex flex-col gap-2 mb-4 animate-fade-in-up">
+                    <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-300' : 'text-black'}`}>PESQUISAR</label>
+                    <div className="flex gap-2 items-center w-full">
+                        <div className="relative flex-1">
+                            <SearchIcon className="absolute left-3 top-2 h-4 w-4 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Pesquisar por nota fiscal, nº de série ou certificado..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className={`w-full h-8 pl-9 pr-3 border rounded-lg text-[11px] font-medium outline-none transition-all shadow-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-800 border-slate-600 text-slate-200 placeholder-slate-500' : 'bg-white border-slate-300 text-slate-700'}`}
+                            />
+                        </div>
+                        <button 
+                            onClick={handleClearFilters}
+                            className="h-8 px-3 flex items-center justify-center text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100 whitespace-nowrap"
+                            title="Limpar pesquisa"
+                        >
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+                {filteredAdaptacoes.map((item, idx) => <AdaptacaoCard key={idx} data={item} isDarkMode={isDarkMode} />)}
+                {filteredAdaptacoes.length === 0 && (
+                      <div className="p-10 text-center text-slate-400">
+                          <TruckIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                          <p className="text-xs">Nenhuma adaptação encontrada para esta pesquisa.</p>
+                      </div>
+                )}
+              </div>
+            )}
+
             {activeTab === 'pedidos' && (
               <div className="animate-fade-in-up">
                  {cartItems.length > 0 ? (
                     <>
                         {/* Seção Dados do Cliente */}
-                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm animate-fade-in-up mb-4">
-                            <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+                        <div className={`p-4 rounded-xl border shadow-sm animate-fade-in-up mb-4 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                            <div className={`flex justify-between items-center mb-3 border-b pb-2 ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
                                 <div className="flex items-center gap-2">
                                     <UserIcon className="w-3.5 h-3.5 text-blue-500" />
                                     <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Dados do Cliente</h3>
@@ -1221,7 +1273,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.nome}
                                         onChange={(e) => handleClientDataChange('nome', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="Digite o nome completo"
                                     />
                                 </div>
@@ -1231,7 +1283,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.cnpj}
                                         onChange={(e) => handleClientDataChange('cnpj', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="00.000.000/0000-00"
                                     />
                                 </div>
@@ -1241,7 +1293,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.contato}
                                         onChange={(e) => handleClientDataChange('contato', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="Nome do responsável"
                                     />
                                 </div>
@@ -1253,7 +1305,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.telefone}
                                         onChange={(e) => handleClientDataChange('telefone', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="(00) 00000-0000"
                                     />
                                 </div>
@@ -1263,7 +1315,7 @@ const App: React.FC = () => {
                                         type="email" 
                                         value={clientData.email}
                                         onChange={(e) => handleClientDataChange('email', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="email@exemplo.com"
                                     />
                                 </div>
@@ -1273,7 +1325,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.cidade}
                                         onChange={(e) => handleClientDataChange('cidade', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="Cidade"
                                     />
                                 </div>
@@ -1282,7 +1334,7 @@ const App: React.FC = () => {
                                     <select
                                         value={clientData.uf}
                                         onChange={(e) => handleClientDataChange('uf', e.target.value)}
-                                        className="w-full h-8 px-1 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                        className={`w-full h-8 px-1 border rounded-lg text-[11px] outline-none transition-all focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                     >
                                         <option value="">-</option>
                                         {BRAZILIAN_STATES.map(state => (
@@ -1298,7 +1350,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.representante}
                                         onChange={(e) => handleClientDataChange('representante', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="Nome do representante"
                                     />
                                 </div>
@@ -1308,7 +1360,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.pedido}
                                         onChange={(e) => handleClientDataChange('pedido', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="0000"
                                     />
                                 </div>
@@ -1318,7 +1370,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.pagamento}
                                         onChange={(e) => handleClientDataChange('pagamento', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="Ex: 30/60 dias"
                                     />
                                 </div>
@@ -1328,7 +1380,7 @@ const App: React.FC = () => {
                                         type="text" 
                                         value={clientData.transportadora}
                                         onChange={(e) => handleClientDataChange('transportadora', e.target.value)}
-                                        className="w-full h-8 px-2 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
+                                        className={`w-full h-8 px-2 border rounded-lg text-[11px] outline-none transition-all placeholder:text-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                         placeholder="Nome da transportadora"
                                     />
                                 </div>
@@ -1337,7 +1389,7 @@ const App: React.FC = () => {
                                     <select
                                         value={clientData.tipoFrete}
                                         onChange={(e) => handleClientDataChange('tipoFrete', e.target.value)}
-                                        className="w-full h-8 px-1 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                        className={`w-full h-8 px-1 border rounded-lg text-[11px] outline-none transition-all focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
                                     >
                                         <option value="">-</option>
                                         <option value="CIF">CIF</option>
@@ -1348,12 +1400,12 @@ const App: React.FC = () => {
                         </div>
 
                         {/* Tabela de Itens */}
-                        <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up mb-4">
-                            <div className="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                        <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up mb-4 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                            <div className={`p-3 border-b flex justify-between items-center ${isDarkMode ? 'bg-slate-900/50 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
                                 <span className="text-[10px] font-bold text-slate-500 uppercase">Itens do Pedido</span>
                             </div>
                             <table className="w-full text-left">
-                                <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
                                     <tr>
                                         <th className="p-2.5">Cód. Interno</th>
                                         <th className="p-2.5">Cód. Freiocar</th>
@@ -1363,25 +1415,25 @@ const App: React.FC = () => {
                                         <th className="p-2.5 text-center">Remover</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
                                     {cartItems.map((item) => (
-                                        <tr key={item.id} className="transition-colors hover:bg-slate-50">
-                                            <td className="p-2.5 text-[11px] font-medium text-slate-600 align-middle">{item.codInterno}</td>
-                                            <td className="p-2.5 text-[11px] font-medium text-blue-600 align-middle">{item.codFreiocar}</td>
-                                            <td className="p-2.5 text-[11px] text-slate-600 align-middle uppercase">{item.descricao}</td>
-                                            <td className="p-2.5 text-[11px] font-bold text-green-600 text-right align-middle">{formatCurrency(item.valorUnitario)}</td>
+                                        <tr key={item.id} className={`transition-colors ${isDarkMode ? 'hover:bg-slate-800/50 text-slate-300' : 'hover:bg-slate-50 text-slate-600'}`}>
+                                            <td className={`p-2.5 text-[11px] font-medium align-middle ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{item.codInterno}</td>
+                                            <td className={`p-2.5 text-[11px] font-medium align-middle ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{item.codFreiocar}</td>
+                                            <td className={`p-2.5 text-[11px] align-middle uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{item.descricao}</td>
+                                            <td className={`p-2.5 text-[11px] font-bold text-right align-middle ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{formatCurrency(item.valorUnitario)}</td>
                                             <td className="p-2.5 align-middle">
                                                 <div className="flex items-center justify-center gap-1">
                                                     <button 
                                                     onClick={() => handleUpdateCartQuantity(item.id, -1)}
-                                                    className="w-5 h-5 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-[10px] hover:bg-slate-100 transition-colors"
+                                                    className={`w-5 h-5 flex items-center justify-center rounded border text-[10px] transition-colors ${isDarkMode ? 'border-slate-600 text-slate-400 hover:bg-slate-700' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
                                                     >
                                                     -
                                                     </button>
-                                                    <span className="w-6 text-center text-[11px] font-bold text-blue-600">{item.quantidade}</span>
+                                                    <span className={`w-6 text-center text-[11px] font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{item.quantidade}</span>
                                                     <button 
                                                     onClick={() => handleUpdateCartQuantity(item.id, 1)}
-                                                    className="w-5 h-5 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-[10px] hover:bg-slate-100 transition-colors"
+                                                    className={`w-5 h-5 flex items-center justify-center rounded border text-[10px] transition-colors ${isDarkMode ? 'border-slate-600 text-slate-400 hover:bg-slate-700' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
                                                     >
                                                     +
                                                     </button>
@@ -1390,7 +1442,7 @@ const App: React.FC = () => {
                                             <td className="p-2.5 text-center align-middle">
                                                 <button 
                                                     onClick={() => handleRemoveFromCart(item.id)}
-                                                    className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
+                                                    className={`transition-colors p-1 rounded-full ${isDarkMode ? 'text-slate-500 hover:text-red-400 hover:bg-red-900/30' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
                                                     title="Remover item"
                                                 >
                                                     <TrashIcon className="w-3.5 h-3.5" />
@@ -1403,14 +1455,14 @@ const App: React.FC = () => {
                         </div>
                     
                         {/* Novo Campo: Observações do Pedido */}
-                        <div className="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 flex gap-3 shadow-sm">
+                        <div className={`mb-4 p-3 rounded-lg border flex gap-3 shadow-sm ${isDarkMode ? 'bg-amber-900/20 border-amber-900/40' : 'bg-amber-50 border-amber-200'}`}>
                             <InfoIcon className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                             <div className="w-full">
                                 <h3 className="text-[10px] font-bold text-amber-700 uppercase mb-1">Observações do Pedido</h3>
                                 <textarea
                                     value={clientData.observacao}
                                     onChange={(e) => handleClientDataChange('observacao', e.target.value)}
-                                    className="w-full bg-transparent border-none p-0 text-[11px] text-slate-700 leading-snug focus:ring-0 placeholder:text-amber-700/50 resize-y min-h-[40px] outline-none"
+                                    className={`w-full bg-transparent border-none p-0 text-[11px] leading-snug focus:ring-0 resize-y min-h-[40px] outline-none ${isDarkMode ? 'text-slate-300 placeholder-slate-600' : 'text-slate-700 placeholder-amber-700/50'}`}
                                     placeholder="Digite aqui observações adicionais para este pedido..."
                                 />
                             </div>
@@ -1427,17 +1479,17 @@ const App: React.FC = () => {
             )}
 
             {activeTab !== 'adaptacoes' && totals.subtotal > 0 && (
-              <div className="p-5 rounded-xl border border-blue-100 shadow-lg bg-white relative overflow-hidden animate-slide-in-right mb-4">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-10 -mt-10 blur-2xl opacity-50 pointer-events-none"></div>
+              <div className={`p-5 rounded-xl border shadow-lg relative overflow-hidden animate-slide-in-right mb-4 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-blue-100'}`}>
+                <div className={`absolute top-0 right-0 w-32 h-32 rounded-full -mr-10 -mt-10 blur-2xl opacity-50 pointer-events-none ${isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}></div>
                 <div className="relative z-10">
                   <div className="flex justify-between items-center mb-1"><span className="text-[11px] font-medium text-slate-500">Subtotal</span><span className="font-bold text-blue-500 text-xs">{formatCurrency(totals.subtotal)}</span></div>
                   <div className="flex justify-between items-center mb-3"><span className="text-[11px] font-medium text-slate-500">IPI (3.25%)</span><span className="font-bold text-blue-300 text-xs">{formatCurrency(totals.ipi)}</span></div>
-                  <div className="flex justify-between items-end border-t border-dashed border-slate-200 pt-3">
+                  <div className={`flex justify-between items-end border-t border-dashed pt-3 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
                     <div>
                       <span className="text-xs font-bold text-blue-600 block uppercase tracking-wide">TOTAL</span>
                       {activeTab !== 'pedidos' ? (
                         <div className="flex items-center gap-2 mt-2">
-                            <button onClick={() => setIsConsumerFinal(!isConsumerFinal)} className={`relative w-8 h-4 rounded-full transition-colors ${isConsumerFinal ? 'bg-green-500' : 'bg-slate-200'}`}>
+                            <button onClick={() => setIsConsumerFinal(!isConsumerFinal)} className={`relative w-8 h-4 rounded-full transition-colors ${isConsumerFinal ? 'bg-green-500' : (isDarkMode ? 'bg-slate-700' : 'bg-slate-200')}`}>
                             <span className={`absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${isConsumerFinal ? 'translate-x-4' : ''}`} />
                             </button>
                             <span className="text-[10px] font-bold text-slate-400">Consumidor Final (+5%)</span>
@@ -1455,7 +1507,7 @@ const App: React.FC = () => {
                                 </div>
                                 <button 
                                     onClick={handlePrintOrder}
-                                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 py-1 px-3 rounded-lg transition-colors text-[9px] font-bold uppercase tracking-wide"
+                                    className={`flex items-center gap-2 py-1 px-3 rounded-lg transition-colors text-[9px] font-bold uppercase tracking-wide ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
                                 >
                                     <PrinterIcon className="w-3 h-3" />
                                     Imprimir Pedido
@@ -1471,10 +1523,22 @@ const App: React.FC = () => {
         </main>
 
         {/* Novo Rodapé Fixo Flutuante Compacto */}
-        <footer className="bg-white mx-5 mb-5 py-2 px-4 rounded-xl shadow-sm flex justify-between items-center text-[10px] z-20 shrink-0 h-10 border border-slate-100">
+        <footer className={`mx-5 mb-5 py-2 px-4 rounded-xl shadow-sm flex justify-between items-center text-[10px] z-20 shrink-0 h-10 border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
             <div className="text-slate-400 font-medium">© 2026 Cardancorp.app</div>
             <div className="flex items-center gap-3">
                 <span className="text-[9px] text-slate-300 font-mono tracking-tight">v{UI_STABLE_CONFIG.version}</span>
+                
+                {/* Theme Toggle Switch */}
+                <button
+                  onClick={toggleTheme}
+                  className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-slate-200'}`}
+                  title={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-300 flex items-center justify-center ${isDarkMode ? 'translate-x-4' : 'translate-x-0'}`}>
+                     {isDarkMode ? <MoonStarsIcon className="w-2 h-2 text-slate-700" /> : <SunIcon className="w-2 h-2 text-amber-500" />}
+                  </div>
+                </button>
+
                 <button 
                   onClick={loadData} 
                   title="Sincronizar dados"
@@ -1490,21 +1554,21 @@ const App: React.FC = () => {
       {/* Modal de Conflito de ICMS */}
       {showIcmsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 animate-scale-up">
+            <div className={`rounded-xl shadow-2xl max-w-sm w-full p-6 animate-scale-up ${isDarkMode ? 'bg-slate-800 text-slate-100' : 'bg-white text-slate-800'}`}>
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-amber-100 rounded-full text-amber-600">
                         <InfoIcon className="w-6 h-6" />
                     </div>
-                    <h3 className="text-sm font-bold text-slate-800">Conflito de ICMS Detectado</h3>
+                    <h3 className="text-sm font-bold">Conflito de ICMS Detectado</h3>
                 </div>
-                <p className="text-xs text-slate-600 mb-6 leading-relaxed">
+                <p className={`text-xs mb-6 leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     Você está tentando adicionar um item com uma alíquota de ICMS diferente dos itens já existentes no carrinho. <br/><br/>
                     Para prosseguir, é necessário limpar o carrinho atual ou cancelar a adição deste item.
                 </p>
                 <div className="flex gap-3 justify-end">
                     <button 
                         onClick={cancelAdd}
-                        className="px-4 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isDarkMode ? 'text-slate-400 hover:bg-slate-700' : 'text-slate-500 hover:bg-slate-100'}`}
                     >
                         Cancelar
                     </button>
