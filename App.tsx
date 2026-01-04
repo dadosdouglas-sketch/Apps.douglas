@@ -11,14 +11,14 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "2.4.3-print-order",
+  version: "2.5.5-logo-fix",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
   footerBg: "bg-white border-slate-200",
   mainBg: "bg-slate-50",
-  loginBgUrl: "https://lh3.googleusercontent.com/d/1nGDJhj0wbPwkjXeEemmJSgc8QG0dUFZA",
-  logoUrl: "https://lh3.googleusercontent.com/d/1M6qN4seZa2cLgXU2j6Ehdhjj_XzauBCs", // Logo Preto (Login)
+  loginBgUrl: "https://lh3.googleusercontent.com/d/1nGDJhj0wbPwkjXeEemmJSgc8QG0dUFZA", // Fundo Original Restaurado
+  logoUrl: "https://lh3.googleusercontent.com/d/1BX58YbrIRFZiHCUyRlwXcXX6_Vkv079O", // Logo CardanCorp Atualizado
   headerLogoUrl: "https://lh3.googleusercontent.com/d/1N39JjKJuqlB55sDdesPsd9n1jUsojVBZ", // Logo Branco (App Expandido)
   collapsedLogoUrl: "https://lh3.googleusercontent.com/d/1KVKYO0kGBxB03DlZtfqj099uqkllOF8k" // Logo Branco (App Comprimido)
 };
@@ -75,6 +75,8 @@ interface ClientData {
   pedido: string;
   pagamento: string;
   transportadora: string;
+  tipoFrete: string; // Novo campo CIF/FOB
+  observacao: string;
 }
 
 const App: React.FC = () => {
@@ -127,7 +129,9 @@ const App: React.FC = () => {
     representante: '',
     pedido: '',
     pagamento: '',
-    transportadora: ''
+    transportadora: '',
+    tipoFrete: '',
+    observacao: ''
   });
 
   // Estados do Modal de Conflito de ICMS
@@ -331,7 +335,7 @@ const App: React.FC = () => {
     setCartRate(null);
     setClientData({ 
         nome: '', cnpj: '', contato: '', telefone: '', email: '', cidade: '', uf: '',
-        representante: '', pedido: '', pagamento: '', transportadora: ''
+        representante: '', pedido: '', pagamento: '', transportadora: '', tipoFrete: '', observacao: ''
     });
     setIsConsumerFinal(false);
   };
@@ -482,131 +486,203 @@ const App: React.FC = () => {
     const printWindow = window.open('', '', 'height=800,width=800');
     if (!printWindow) return;
 
-    const date = new Date().toLocaleDateString('pt-BR');
+    // Gerar Data e Hora para o título e arquivo
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR');
+    const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     
+    // Formato ID: ddmmyyyyhhmm
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const filenameId = `${day}${month}${year}${hour}${minute}`;
+    
+    const clientName = (clientData.nome || 'Cliente').trim().replace(/[^a-zA-Z0-9 ]/g, '');
+    const docTitle = `${clientName} ${filenameId}`;
+    
+    const printHeaderImg = "https://lh3.googleusercontent.com/d/1cfRrxRU7TfDtsbhbErDDVN48gZWpwRjV";
+    
+    // Gera as linhas da tabela COM a coluna Cód. Freiocar
     const itemsHtml = cartItems.map(item => `
       <tr class="border-b border-slate-100">
-        <td class="py-2 px-2 text-xs text-slate-600">${item.codInterno}</td>
-        <td class="py-2 px-2 text-xs text-slate-600 uppercase">${item.descricao}</td>
-        <td class="py-2 px-2 text-xs text-right text-slate-600">${formatCurrency(item.valorUnitario)}</td>
-        <td class="py-2 px-2 text-xs text-center text-slate-600">${item.quantidade}</td>
-        <td class="py-2 px-2 text-xs text-right font-bold text-slate-800">${formatCurrency(item.valorUnitario * item.quantidade)}</td>
+        <td class="py-1 px-2 text-[9px] text-slate-600">${item.codInterno}</td>
+        <td class="py-1 px-2 text-[9px] text-blue-600 font-medium">${item.codFreiocar}</td>
+        <td class="py-1 px-2 text-[9px] text-slate-600 uppercase">${item.descricao}</td>
+        <td class="py-1 px-2 text-[9px] text-right text-slate-600">${formatCurrency(item.valorUnitario)}</td>
+        <td class="py-1 px-2 text-[9px] text-center text-slate-600">${item.quantidade}</td>
+        <td class="py-1 px-2 text-[9px] text-right font-bold text-slate-800">${formatCurrency(item.valorUnitario * item.quantidade)}</td>
       </tr>
     `).join('');
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>Pedido - ${clientData.nome || 'Cliente'}</title>
+          <title>${docTitle}</title>
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-            body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { 
+                font-family: 'Inter', sans-serif; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                margin: 0;
+                padding: 32px;
+                box-sizing: border-box;
+            }
+            .content-wrapper { flex: 1; }
+            .print-footer {
+                margin-top: auto;
+                padding-top: 10px;
+                border-top: 1px solid #e2e8f0;
+                display: flex;
+                justify-content: space-between;
+                font-size: 9px;
+                color: #64748b;
+            }
           </style>
         </head>
-        <body class="bg-white p-8">
-            <!-- Header -->
-            <div class="flex justify-between items-start mb-8 border-b pb-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-800">PEDIDO DE VENDAS</h1>
-                    <p class="text-sm text-slate-500">CardanCorp App</p>
+        <body class="bg-white">
+            <div class="content-wrapper">
+                <!-- Novo Cabeçalho Minimalista com Texto -->
+                <div class="flex justify-between items-start mb-6 border-b border-slate-200 pb-4">
+                    <div class="flex flex-col">
+                        <!-- Logo Novo com Tamanho Reduzido -->
+                        <img src="${printHeaderImg}" alt="CardanCorp" class="h-7 w-auto object-contain mb-3 self-start" />
+                        
+                        <!-- Dados da Empresa (Texto Minimalista) -->
+                        <div class="text-[9px] text-slate-500 leading-snug">
+                            <p class="font-bold text-slate-800 uppercase mb-0.5">CARDANCORP</p>
+                            <p class="mb-0.5">CNPJ: 92.765.361/0001-47</p>
+                            <p>Endereço: Estr. Mun. Vicente Menezes, 515 - Linha 40,</p>
+                            <p class="mb-1">Caxias do Sul - RS, 95044-030</p>
+                            <p><span class="font-bold">Telefone:</span> (54) 3537-5000</p>
+                            <p><span class="font-bold">E-mail:</span> administrativo@cardancorp.com.br</p>
+                        </div>
+                    </div>
+
+                    <div class="text-right pt-2">
+                         <p class="text-[10px] font-medium text-slate-500 mb-1">${dateStr}, ${timeStr}</p>
+                         ${clientData.pedido ? `<p class="text-[10px] font-bold text-slate-700">PEDIDO: ${clientData.pedido}</p>` : ''}
+                    </div>
                 </div>
-                <div class="text-right">
-                    <p class="text-sm font-bold text-slate-700">Data: ${date}</p>
-                    <p class="text-xs text-slate-500">Versão: ${UI_STABLE_CONFIG.version}</p>
+
+                <!-- Client Data -->
+                <div class="bg-slate-50 p-3 rounded-lg mb-4 border border-slate-200">
+                    <h2 class="text-[10px] font-bold text-slate-500 uppercase mb-2 border-b border-slate-200 pb-1">Dados do Cliente</h2>
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="col-span-2">
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Nome</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.nome || '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">CNPJ</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.cnpj || '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Pedido N°</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.pedido || '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Contato</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.contato || '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Telefone</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.telefone || '-'}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Email</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.email || '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Cidade/UF</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.cidade || ''} ${clientData.uf ? '- ' + clientData.uf : '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Representante</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.representante || '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Pagamento</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">${clientData.pagamento || '-'}</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 font-bold text-[8px] uppercase">Transportadora/Frete</span>
+                            <span class="block font-bold text-slate-700 text-[10px] uppercase">
+                                ${clientData.transportadora || '-'} ${clientData.tipoFrete ? '- ' + clientData.tipoFrete : ''}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Table -->
+                <div class="mb-6">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-500 uppercase text-[10px] font-bold">
+                                <th class="py-2 px-2 rounded-tl-lg">Cód. Interno</th>
+                                <th class="py-2 px-2">Cód. Freiocar</th>
+                                <th class="py-2 px-2">Descrição</th>
+                                <th class="py-2 px-2 text-right">Unitário</th>
+                                <th class="py-2 px-2 text-center">Qtd</th>
+                                <th class="py-2 px-2 text-right rounded-tr-lg">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                ${clientData.observacao ? `
+                <div class="mb-4 p-2 rounded border border-amber-200 bg-amber-50 flex gap-2">
+                    <div style="color: #f59e0b; width: 14px; margin-top: 2px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-[9px] font-bold text-amber-700 uppercase mb-0.5">Observações do Pedido</h3>
+                        <p class="text-[9px] text-slate-700 leading-snug whitespace-pre-wrap">${clientData.observacao}</p>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Totals -->
+                <div class="flex justify-end">
+                    <div class="w-64">
+                        <div class="flex justify-between py-1 text-xs text-slate-500">
+                            <span>Subtotal</span>
+                            <span class="font-medium">${formatCurrency(totals.subtotal)}</span>
+                        </div>
+                        <div class="flex justify-between py-1 text-xs text-slate-500 border-b border-slate-200 pb-2">
+                            <span>IPI (3.25%)</span>
+                            <span class="font-medium">${formatCurrency(totals.ipi)}</span>
+                        </div>
+                        ${isConsumerFinal ? `
+                        <div class="flex justify-between py-1 text-xs text-slate-500 mt-2">
+                            <span>Consumidor Final (+5%)</span>
+                            <span class="font-medium">SIM</span>
+                        </div>
+                        ` : ''}
+                        <div class="flex justify-between items-center py-2 text-xs font-bold text-slate-800 border-t border-slate-200 mt-2">
+                            <span>TOTAL</span>
+                            <span>${formatCurrency(totals.total)}</span>
+                        </div>
+                        <div class="text-[10px] text-right text-slate-400 uppercase font-bold mt-1">
+                            ICMS: ${cartRate ? cartRate.replace('icms', '') + '%' : 'PADRÃO'}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Client Data -->
-            <div class="bg-slate-50 p-4 rounded-lg mb-6 border border-slate-200">
-                <h2 class="text-xs font-bold text-slate-500 uppercase mb-3 border-b border-slate-200 pb-1">Dados do Cliente</h2>
-                <div class="grid grid-cols-4 gap-4 text-xs">
-                    <div class="col-span-2">
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Nome</span>
-                        <span class="block font-medium text-slate-700">${clientData.nome || '-'}</span>
-                    </div>
-                    <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">CNPJ</span>
-                        <span class="block font-medium text-slate-700">${clientData.cnpj || '-'}</span>
-                    </div>
-                     <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Pedido N°</span>
-                        <span class="block font-medium text-slate-700">${clientData.pedido || '-'}</span>
-                    </div>
-                    <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Contato</span>
-                        <span class="block font-medium text-slate-700">${clientData.contato || '-'}</span>
-                    </div>
-                    <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Telefone</span>
-                        <span class="block font-medium text-slate-700">${clientData.telefone || '-'}</span>
-                    </div>
-                    <div class="col-span-2">
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Email</span>
-                        <span class="block font-medium text-slate-700">${clientData.email || '-'}</span>
-                    </div>
-                    <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Cidade/UF</span>
-                        <span class="block font-medium text-slate-700">${clientData.cidade || ''} ${clientData.uf ? '- ' + clientData.uf : '-'}</span>
-                    </div>
-                     <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Representante</span>
-                        <span class="block font-medium text-slate-700">${clientData.representante || '-'}</span>
-                    </div>
-                    <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Pagamento</span>
-                        <span class="block font-medium text-slate-700">${clientData.pagamento || '-'}</span>
-                    </div>
-                     <div>
-                        <span class="block text-slate-400 font-bold text-[10px] uppercase">Transportadora</span>
-                        <span class="block font-medium text-slate-700">${clientData.transportadora || '-'}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Items Table -->
-            <div class="mb-6">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-500 uppercase text-[10px] font-bold">
-                            <th class="py-2 px-2 rounded-tl-lg">Código</th>
-                            <th class="py-2 px-2">Descrição</th>
-                            <th class="py-2 px-2 text-right">Unitário</th>
-                            <th class="py-2 px-2 text-center">Qtd</th>
-                            <th class="py-2 px-2 text-right rounded-tr-lg">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHtml}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Totals -->
-             <div class="flex justify-end">
-                <div class="w-64">
-                    <div class="flex justify-between py-1 text-xs text-slate-500">
-                        <span>Subtotal</span>
-                        <span class="font-medium">${formatCurrency(totals.subtotal)}</span>
-                    </div>
-                    <div class="flex justify-between py-1 text-xs text-slate-500 border-b border-slate-200 pb-2">
-                        <span>IPI (3.25%)</span>
-                        <span class="font-medium">${formatCurrency(totals.ipi)}</span>
-                    </div>
-                     ${isConsumerFinal ? `
-                    <div class="flex justify-between py-1 text-xs text-slate-500 mt-2">
-                        <span>Consumidor Final (+5%)</span>
-                        <span class="font-medium">SIM</span>
-                    </div>
-                    ` : ''}
-                    <div class="flex justify-between items-center py-3 text-sm font-bold text-slate-800">
-                        <span>TOTAL</span>
-                        <span class="text-xl">${formatCurrency(totals.total)}</span>
-                    </div>
-                     <div class="text-[10px] text-right text-slate-400 uppercase font-bold mt-1">
-                        ICMS: ${cartRate ? cartRate.replace('icms', '') + '%' : 'PADRÃO'}
-                    </div>
-                </div>
+            <!-- Footer (Simulando rodapé do navegador) -->
+            <div class="print-footer">
+                <span>${dateStr}, ${timeStr}</span>
+                <span>CardanCorp</span>
             </div>
 
             <script>
@@ -639,6 +715,14 @@ const App: React.FC = () => {
             </div>
             <div className="flex flex-col items-center gap-3 pt-3">
               <button type="submit" disabled={!isCredentialValid} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-full font-bold text-xs tracking-wide shadow-md hover:shadow-lg transition-all disabled:bg-slate-300 disabled:shadow-none uppercase">ENTRAR</button>
+              <a
+                href="http://wa.me/54999795081"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-slate-400 hover:text-orange-500 transition-colors font-medium mt-1 cursor-pointer"
+              >
+                Esqueceu sua senha
+              </a>
             </div>
           </form>
         </div>
@@ -1229,7 +1313,7 @@ const App: React.FC = () => {
                                 placeholder="Ex: 30/60 dias"
                             />
                         </div>
-                        <div className="md:col-span-4">
+                        <div className="md:col-span-3">
                             <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Transportadora</label>
                             <input 
                                 type="text" 
@@ -1239,11 +1323,23 @@ const App: React.FC = () => {
                                 placeholder="Nome da transportadora"
                             />
                         </div>
+                        <div className="md:col-span-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1 ml-0.5">Frete</label>
+                            <select
+                                value={clientData.tipoFrete}
+                                onChange={(e) => handleClientDataChange('tipoFrete', e.target.value)}
+                                className="w-full h-8 px-1 border border-slate-200 rounded-lg bg-slate-50 text-[11px] text-slate-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                            >
+                                <option value="">-</option>
+                                <option value="CIF">CIF</option>
+                                <option value="FOB">FOB</option>
+                            </select>
+                        </div>
                     </div>
                  </div>
 
                  {cartItems.length > 0 ? (
-                    <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up">
+                    <div className="border rounded-xl overflow-hidden bg-white border-slate-200 shadow-sm animate-fade-in-up mb-4">
                         <div className="p-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
                             <span className="text-[10px] font-bold text-slate-500 uppercase">Itens do Pedido</span>
                         </div>
@@ -1303,6 +1399,21 @@ const App: React.FC = () => {
                         <p className="text-[10px] mt-1 opacity-60">Adicione itens clicando no ícone do carrinho nas outras abas.</p>
                     </div>
                  )}
+
+                 {/* Novo Campo: Observações do Pedido */}
+                 <div className="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 flex gap-3 shadow-sm">
+                     <InfoIcon className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                     <div className="w-full">
+                        <h3 className="text-[10px] font-bold text-amber-700 uppercase mb-1">Observações do Pedido</h3>
+                        <textarea
+                            value={clientData.observacao}
+                            onChange={(e) => handleClientDataChange('observacao', e.target.value)}
+                            className="w-full bg-transparent border-none p-0 text-[11px] text-slate-700 leading-snug focus:ring-0 placeholder:text-amber-700/50 resize-y min-h-[40px] outline-none"
+                            placeholder="Digite aqui observações adicionais para este pedido..."
+                        />
+                     </div>
+                 </div>
+
               </div>
             )}
 
