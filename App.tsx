@@ -12,7 +12,7 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.3.7-adaptacao-layout-fix",
+  version: "3.3.9-auto-logout",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -348,14 +348,62 @@ const App: React.FC = () => {
     setIsLoggedIn(false);
     setLoginUser('');
     setLoginPass('');
+    setShowPassword(false); // Reset visual state
+    setLoginError(false);   // Reset visual state
     setActiveTab('kits');
     setCurrentUserRole(null);
     handleClearFilters();
-    setCartItems([]); // Limpa da memória
-    setCartRate(null); // Limpa da memória
+    
+    // Clean Cart Data
+    setCartItems([]); 
+    setCartRate(null); 
+    
+    // Clean Client Data (IMPORTANT: Ensure fields are wiped on logout)
+    setClientData({
+        nome: '', cnpj: '', contato: '', telefone: '', email: '', cidade: '', uf: '',
+        representante: '', pedido: '', pagamento: '', transportadora: '', tipoFrete: '', observacao: ''
+    });
+
     localStorage.removeItem('cardan_user'); // Limpa usuário salvo ao sair manualmente
-    // O useEffect atualizará o localStorage automaticamente para refletir o array vazio
+    
+    // Explicitly remove persisted items just in case (useEffects will also sync the empty state)
+    localStorage.removeItem('cartItems');
+    localStorage.removeItem('clientData');
+    localStorage.removeItem('cartRate');
   };
+
+  // Efeito para Logout Automático por Inatividade (5 Minutos)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 Minutos em milissegundos
+    let timeoutId: any; // Usando any para compatibilidade com NodeJS.Timeout do navegador
+
+    const triggerAutoLogout = () => {
+        console.log("Sessão expirada por inatividade.");
+        handleLogout();
+    };
+
+    const resetTimer = () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(triggerAutoLogout, INACTIVITY_LIMIT);
+    };
+
+    // Eventos monitorados
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    // Inicializa
+    resetTimer();
+
+    // Adiciona listeners
+    events.forEach(event => document.addEventListener(event, resetTimer));
+
+    // Limpeza
+    return () => {
+        clearTimeout(timeoutId);
+        events.forEach(event => document.removeEventListener(event, resetTimer));
+    };
+  }, [isLoggedIn]);
 
   const activeRate = useMemo<'icms17' | 'icms12' | 'icms7'>(() => {
     if (!selectedUF) return 'icms17';
