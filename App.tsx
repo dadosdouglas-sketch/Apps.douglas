@@ -12,7 +12,7 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.3.4-access-rules-update",
+  version: "3.3.5-clean-ui",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -303,27 +303,6 @@ const App: React.FC = () => {
     setIsCuicaDupla(false);
     setIsEixoRedondo(false);
     setIsEixoTubular(false);
-  };
-
-  // Função de Backup de Dados (Segurança)
-  const handleExportData = () => {
-    const dataToSave = {
-        cartItems,
-        clientData,
-        cartRate,
-        timestamp: new Date().toISOString(),
-        version: UI_STABLE_CONFIG.version
-    };
-    
-    const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup_pedido_cardan_${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -1158,40 +1137,6 @@ const App: React.FC = () => {
                         </a>
                         </div>
                     </form>
-
-                    {loadingState === LoadingState.SUCCESS && (
-                        <div className="mt-6 pt-4 border-t border-slate-100">
-                            <details className="group">
-                                <summary className="text-[9px] font-bold text-slate-400 cursor-pointer uppercase select-none hover:text-slate-600 transition-colors list-none text-center">
-                                    Verificar Usuários Carregados ({authorizedUsers.length})
-                                </summary>
-                                <div className="mt-2 max-h-32 overflow-y-auto bg-slate-50 rounded p-2 custom-scrollbar">
-                                    {authorizedUsers.length > 0 ? (
-                                        <table className="w-full text-left">
-                                            <thead>
-                                                <tr className="text-[8px] text-slate-400 uppercase">
-                                                    <th className="pb-1">Usuário</th>
-                                                    <th className="pb-1">Senha</th>
-                                                    <th className="pb-1">Tipo</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {authorizedUsers.map((u, i) => (
-                                                    <tr key={i} className="border-b border-slate-200 last:border-0 text-[9px] text-slate-600">
-                                                        <td className="py-1 font-bold">{u.usuario}</td>
-                                                        <td className="py-1 font-mono text-slate-400">{u.senha}</td>
-                                                        <td className="py-1 text-blue-500 text-[8px] uppercase">{u.tipo}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    ) : (
-                                        <p className="text-[9px] text-red-400 text-center">Nenhum usuário encontrado na planilha.</p>
-                                    )}
-                                </div>
-                            </details>
-                        </div>
-                    )}
                     </div>
                 </div>
             ) : (
@@ -1533,8 +1478,6 @@ const App: React.FC = () => {
                         <div className="flex items-center gap-3">
                             <span className="text-[9px] text-slate-300 font-mono tracking-tight">v{UI_STABLE_CONFIG.version}</span>
                             
-                            <button onClick={handleExportData} className="text-slate-400 hover:text-blue-500 transition-colors" title="Backup do Pedido (Download JSON)"><DownloadIcon className="w-3.5 h-3.5" /></button>
-
                             <button
                             onClick={toggleTheme}
                             className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${isDarkMode ? 'bg-slate-600' : 'bg-slate-200'}`}
