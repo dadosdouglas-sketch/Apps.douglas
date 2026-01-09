@@ -9,8 +9,11 @@ const KITS_FULL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6Xcw-Lb
 const ADAPTACOES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtKaSH5Yjj3OawT5phTfyXKvBsUQISzGj5Zq6Ex7swLUFGJyU8resWHU9VoUG6vDr4s-n4cLgE0XPy/pub?output=csv';
 const KIT_3EIXO_URL = 'https://docs.google.com/spreadsheets/d/1jopMxv3-GMKrWQGDXdsqpuf8FStACQBT4WOvGOl8pVI/export?format=csv';
 
-// Planilha de Usuários
-const USERS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_hFwZ8b8ttKNUYLdJyaGt5GrLCOALSBapWscuwytH8TXsW_zbW0Oh1FpthKm-6Yhm9FWUwB6kgBFZ/pub?output=csv';
+// -----------------------------------------------------------------------------------------
+// CONFIGURAÇÃO DE USUÁRIOS (NOVA PLANILHA UNIFICADA)
+// -----------------------------------------------------------------------------------------
+// ID: 1VVOvdtbqZ_HzsEe0TGHrViaonux4RmHhLcPd1VfNEK4
+const USERS_UNIFIED_URL = 'https://docs.google.com/spreadsheets/d/1VVOvdtbqZ_HzsEe0TGHrViaonux4RmHhLcPd1VfNEK4/export?format=csv';
 
 // =========================================================================================
 
@@ -60,9 +63,19 @@ const fetchCSVText = async (url: string) => {
   if (!url) return '';
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to fetch data: ${response.statusText}`);
+    console.warn(`Failed to fetch data from ${url}: ${response.statusText}`);
+    return '';
   }
   return await response.text();
+};
+
+// Função para normalizar o tipo de acesso vindo da planilha
+const normalizeAccessType = (rawAccess: string): 'Cardancorp' | 'Concessionaria' | 'Representante' | 'Desconhecido' => {
+    const clean = rawAccess?.trim().toLowerCase() || '';
+    if (clean.includes('cardan')) return 'Cardancorp';
+    if (clean.includes('concession')) return 'Concessionaria';
+    if (clean.includes('represent')) return 'Representante';
+    return 'Desconhecido';
 };
 
 export interface RawKitRow {
@@ -82,7 +95,7 @@ export const fetchSheetData = async (): Promise<{
     const kitsPromise = fetchCSVText(KITS_FULL_URL).catch(() => '');
     const adaptacoesPromise = fetchCSVText(ADAPTACOES_URL).catch(() => '');
     const kit3EixoPromise = fetchCSVText(KIT_3EIXO_URL).catch(() => '');
-    const usersPromise = fetchCSVText(USERS_URL).catch(() => '');
+    const usersPromise = fetchCSVText(USERS_UNIFIED_URL).catch(() => '');
 
     const [partsText, kitsText, adaptacoesText, kit3EixoText, usersText] = await Promise.all([
       partsPromise, 
@@ -92,12 +105,20 @@ export const fetchSheetData = async (): Promise<{
       usersPromise
     ]);
     
-    // Process Users
-    const usersRows = parseCSV(usersText).slice(1);
-    const users: UserCredential[] = usersRows.map(cols => ({
-      usuario: cols[0]?.trim() || '',
-      senha: cols[1]?.trim() || ''
-    })).filter(u => u.usuario !== '');
+    // Process Users (Nova Lógica Unificada)
+    // Espera-se colunas: Usuario, Senha, Acesso
+    const userRows = parseCSV(usersText);
+    // Remove cabeçalho se existir (procura linha que tem "Usuario" ou assume primeira linha como header)
+    const headerIndex = userRows.findIndex(r => r[0]?.toLowerCase().includes('usu') || r[0]?.toLowerCase().includes('user'));
+    const dataRows = headerIndex !== -1 ? userRows.slice(headerIndex + 1) : (userRows.length > 0 && userRows[0][0] === 'Usuario' ? userRows.slice(1) : userRows);
+
+    const users: UserCredential[] = dataRows.map(cols => ({
+        usuario: cols[0]?.trim() || '',
+        senha: cols[1]?.trim() || '',
+        tipo: normalizeAccessType(cols[2])
+    })).filter(u => u.usuario !== '' && u.senha !== '');
+
+    console.log("Usuários carregados (Novo Sistema):", users);
 
     // Process Master Parts
     const partsRows = parseCSV(partsText).slice(1);

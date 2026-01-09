@@ -58,6 +58,7 @@ export interface AdaptacaoData {
 export interface UserCredential {
   usuario: string;
   senha: string;
+  tipo: 'Cardancorp' | 'Concessionaria' | 'Representante' | 'Desconhecido';
 }
 
 export interface CartItem {
