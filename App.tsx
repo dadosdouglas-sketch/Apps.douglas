@@ -12,7 +12,7 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.3.9-auto-logout",
+  version: "3.3.10-darkmode-reset",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -354,6 +354,9 @@ const App: React.FC = () => {
     setCurrentUserRole(null);
     handleClearFilters();
     
+    // Reset Theme to Normal (Light Mode)
+    setIsDarkMode(false);
+
     // Clean Cart Data
     setCartItems([]); 
     setCartRate(null); 
