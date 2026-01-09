@@ -69,11 +69,11 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
 
   // Componente de Campo de Destaque (Estilo Placa, mas fonte Sans e alinhado)
   const HighlightField = ({ label, value }: { label: string, value: string }) => (
-    <div className="flex flex-col items-center justify-center w-full">
-      <span className="text-[9px] text-slate-400 uppercase font-bold mb-0 tracking-wide">{label}</span>
+    <div className="flex flex-col items-center justify-center w-full text-center">
+      <span className="text-[9px] text-slate-400 uppercase font-bold mb-0 tracking-wide text-center w-full">{label}</span>
       <div className={`
         ${isDarkMode ? 'text-blue-400' : 'text-blue-700'} 
-        text-[11px] font-bold font-sans 
+        text-[12px] font-bold font-sans 
         uppercase 
         truncate
         w-full
@@ -94,17 +94,17 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
   );
 
   return (
-    <div id={uniqueId} className={`p-3 rounded-lg shadow-sm border relative font-sans w-full mx-auto mb-2 transition-colors animate-fade-in-up ${isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
+    <div id={uniqueId} className={`p-4 rounded-lg shadow-sm border relative font-sans w-full mx-auto mb-2 transition-colors animate-fade-in-up ${isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'}`}>
       
-      {/* Top Grid: Identificadores Principais (Alinhados) */}
-      <div className={`grid grid-cols-3 gap-2 mb-2 pb-2 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+      {/* Top Grid: Identificadores Principais (Alinhados e Centralizados) */}
+      <div className={`grid grid-cols-3 gap-4 mb-3 pb-2 border-b ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
          <HighlightField label="Nº Série" value={data.nSerie} />
          <HighlightField label="Nota Fiscal" value={data.notaFiscal} />
          <HighlightField label="Certificado Garantia" value={data.certGarantia} />
       </div>
 
       {/* Rows: Especificações Técnicas */}
-      <div className="mb-3 space-y-2">
+      <div className="mb-3 space-y-2 px-1">
           {/* Row 1: Cert. Cardan & Fabricação (Extremos) */}
           <div className="flex justify-between items-center">
                <InfoField label="Cert. Cardan" value={data.certCardan} />
@@ -119,12 +119,12 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
       </div>
 
       {/* Product Highlight Box */}
-      <div className={`p-2.5 rounded-md mb-2 ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+      <div className={`p-3 rounded-md mb-3 ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
         <div className="flex items-center justify-between mb-1.5">
             <div>
                  <span className="text-[9px] text-slate-400 uppercase font-bold">Código</span>
                  <div className="flex items-center gap-2">
-                    <span className={`font-mono font-bold text-xs ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{data.codProduto}</span>
+                    <span className={`font-mono font-bold text-sm ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{data.codProduto}</span>
                     <button 
                     onClick={copyToClipboard}
                     className={`transition-all p-0.5 rounded-md ${
@@ -141,7 +141,7 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
         </div>
         <div>
              <span className="text-[9px] text-slate-400 uppercase font-bold block">Descrição</span>
-             <div className={`text-[11px] font-bold leading-tight ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>
+             <div className={`text-[12px] font-bold leading-tight ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>
                 {data.descProduto}
              </div>
         </div>
@@ -149,22 +149,22 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
 
       {/* Traceability Grid */}
       <div className={`grid grid-cols-3 gap-2 mb-2 pt-2 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-         <div className="flex flex-col">
+         <div className="flex flex-col pl-1">
             <span className="text-[9px] text-slate-400 uppercase font-bold block">Rast. Flange</span>
-            <span className="font-mono text-[9px] text-slate-500">{data.rastFlange}</span>
+            <span className="font-mono text-[10px] text-slate-500">{data.rastFlange}</span>
          </div>
          <div className="text-center flex flex-col items-center">
             <span className="text-[9px] text-slate-400 uppercase font-bold block">Ponteira</span>
-            <span className="font-mono text-[9px] text-slate-500">{data.ponteira}</span>
+            <span className="font-mono text-[10px] text-slate-500">{data.ponteira}</span>
          </div>
-         <div className="text-right flex flex-col items-end">
+         <div className="text-right flex flex-col items-end pr-1">
             <span className="text-[9px] text-slate-400 uppercase font-bold block">Rast. Tubo</span>
-            <span className="font-mono text-[9px] text-slate-500">{data.rastTubo}</span>
+            <span className="font-mono text-[10px] text-slate-500">{data.rastTubo}</span>
          </div>
       </div>
 
       {/* Footer Minimal Info & Print Button */}
-      <div className="pt-1 mt-0.5">
+      <div className="pt-1 mt-0.5 px-1">
         {/* Linha 1: Informações distribuídas (Restaurado) */}
         <div className="flex justify-between items-center text-[9px] text-slate-400 font-medium">
             <span>Conc: <strong className="text-slate-600">{data.concessionaria}</strong></span>
@@ -173,17 +173,17 @@ const AdaptacaoCard: React.FC<AdaptacaoCardProps> = ({ data, isDarkMode = false 
         </div>
 
         {/* Linha 2: Botão de Impressão (Abaixo do OP / Direita) */}
-        <div className="flex justify-end mt-1">
+        <div className="flex justify-end mt-2">
             <button 
                 onClick={handlePrint}
                 className={`
                     print-btn
-                    p-1 rounded-md transition-colors
+                    p-1.5 rounded-md transition-colors
                     ${isDarkMode ? 'text-slate-500 hover:text-blue-400 hover:bg-slate-800' : 'text-slate-300 hover:text-blue-600 hover:bg-slate-100'}
                 `}
                 title="Imprimir Cartão"
             >
-                <PrinterIcon className="w-3.5 h-3.5" />
+                <PrinterIcon className="w-4 h-4" />
             </button>
         </div>
       </div>

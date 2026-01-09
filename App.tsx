@@ -12,7 +12,7 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.3.5-clean-ui",
+  version: "3.3.7-adaptacao-layout-fix",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -877,7 +877,7 @@ const App: React.FC = () => {
     return !!selectedVeiculo || searchTerm.length > 0;
   }, [activeTab, selectedVeiculo, searchTerm]);
 
-  const renderControls = (options: string[], label: string, showSearch: boolean = true) => {
+  const renderControls = (options: string[], label: string, showSearch: boolean = true, showStateIcms: boolean = true) => {
     // Cálculo automático do ICMS baseado no estado selecionado
     let icmsValue = '17%';
     if (selectedUF) {
@@ -912,8 +912,8 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Coluna 2 e 3: Estado e ICMS (Só aparecem se a busca estiver ativa, como na imagem) */}
-          {showSearch && (
+          {/* Coluna 2 e 3: Estado e ICMS (Só aparecem se a busca estiver ativa e showStateIcms for true) */}
+          {showSearch && showStateIcms && (
             <>
                 <div className="w-full md:w-48">
                     <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
@@ -1280,7 +1280,7 @@ const App: React.FC = () => {
 
                         {activeTab === 'kit3eixo' && (
                             <div className="animate-fade-in-up">
-                                {renderControls(unique3EixoVehicles, "Modelo do Veículo", true)}
+                                {renderControls(unique3EixoVehicles, "Modelo do Veículo", true, false)}
                                 <div className="flex items-center gap-6 mb-2 px-1 -mt-3">
                                     {/* (Botões de filtro 3º Eixo - mantidos) */}
                                     <div className="flex items-center gap-2">
@@ -1340,8 +1340,12 @@ const App: React.FC = () => {
                                     </div>
                                     <p className={`text-[10px] mt-2 ml-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Digite acima para filtrar as adaptações.</p>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {filteredAdaptacoes.map((item, idx) => (<AdaptacaoCard key={`${item.nSerie}-${idx}`} data={item} isDarkMode={isDarkMode} />))}
+                                <div className="flex flex-wrap justify-center gap-5">
+                                    {filteredAdaptacoes.map((item, idx) => (
+                                        <div key={`${item.nSerie}-${idx}`} className="w-full md:w-[calc(50%-1.25rem)] xl:w-[calc(50%-1.25rem)] max-w-[650px]">
+                                            <AdaptacaoCard data={item} isDarkMode={isDarkMode} />
+                                        </div>
+                                    ))}
                                 </div>
                                 {filteredAdaptacoes.length === 0 && searchTerm && <div className="p-8 text-center text-slate-400 text-xs">Nenhuma adaptação encontrada para "{searchTerm}".</div>}
                             </div>
