@@ -6,13 +6,13 @@ import KitRow from './components/KitRow';
 import Kit3EixoRow from './components/Kit3EixoRow';
 import AdaptacaoCard from './components/AdaptacaoCard';
 import ErrorBoundary from './components/ErrorBoundary';
-import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon, SunIcon, MoonStarsIcon, EyeIcon, EyeOffIcon, CopyIcon, CheckIcon, PackageIcon, DownloadIcon } from './components/Icons';
+import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon, SunIcon, MoonStarsIcon, EyeIcon, EyeOffIcon, CopyIcon, CheckIcon, PackageIcon, DownloadIcon, CardanIcon } from './components/Icons';
 
 // =========================================================
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.3.10-darkmode-reset",
+  version: "3.4.0-cardan-tab",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -54,7 +54,7 @@ const BRAZILIAN_STATES = [
   { name: 'Tocantins', uf: 'TO', rate: 'icms7' },
 ];
 
-type TabType = 'catracas' | 'kits' | 'kit3eixo' | 'adaptacoes' | 'pedidos' | 'componentes';
+type TabType = 'catracas' | 'kits' | 'kit3eixo' | 'adaptacoes' | 'pedidos' | 'componentes' | 'cardan';
 
 interface PendingItem {
     item: any;
@@ -901,6 +901,12 @@ const App: React.FC = () => {
         visible: isAdmin || isRepresentante // Cardancorp + Representante
       },
       {
+        id: 'cardan',
+        label: 'Cardan',
+        icon: <CardanIcon />,
+        visible: isAdmin || isRepresentante // Cardancorp + Representante
+      },
+      {
         id: 'pedidos',
         label: 'Pedido de Itens',
         icon: <ShoppingCartIcon />,
@@ -917,6 +923,7 @@ const App: React.FC = () => {
       case 'adaptacoes': return 'Adaptações 3º Eixo';
       case 'pedidos': return 'Pedido de Itens';
       case 'componentes': return 'Componentes';
+      case 'cardan': return 'Cardan';
       default: return '';
     }
   }, [activeTab]);
@@ -925,6 +932,7 @@ const App: React.FC = () => {
     if (activeTab === 'adaptacoes') return true; 
     if (activeTab === 'pedidos') return true;
     if (activeTab === 'componentes') return false;
+    if (activeTab === 'cardan') return false;
     return !!selectedVeiculo || searchTerm.length > 0;
   }, [activeTab, selectedVeiculo, searchTerm]);
 
@@ -1324,6 +1332,15 @@ const App: React.FC = () => {
                             <div className="animate-fade-in-up">
                                 <div className="text-center py-12 text-slate-400">
                                     <BrakeComponentsIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                                    <p className="text-xs">Esta seção está em construção.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'cardan' && (
+                            <div className="animate-fade-in-up">
+                                <div className="text-center py-12 text-slate-400">
+                                    <CardanIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
                                     <p className="text-xs">Esta seção está em construção.</p>
                                 </div>
                             </div>

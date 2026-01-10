@@ -116,6 +116,23 @@ export const AxleIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+export const CardanIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="6" width="4" height="12" rx="1" />
+    <rect x="17" y="6" width="4" height="12" rx="1" />
+    <path d="M3 10l4-4" />
+    <path d="M3 14l4-4" />
+    <path d="M3 18l4-4" />
+    <path d="M17 10l4-4" />
+    <path d="M17 14l4-4" />
+    <path d="M17 18l4-4" />
+    <path d="M7 12h3" />
+    <path d="M14 12h3" />
+    <rect x="10" y="9" width="4" height="6" rx="1" />
+    <circle cx="12" cy="12" r="1.5" />
+  </svg>
+);
+
 export const BrakeComponentsIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     {/* Ruler/Caliper Top */}
