@@ -12,12 +12,12 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.4.0-cardan-tab",
+  version: "3.4.1-darker-bg",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
   footerBg: "bg-white border-slate-200",
-  mainBg: "bg-slate-50",
+  mainBg: "bg-slate-100",
   loginBgUrl: "https://lh3.googleusercontent.com/d/1nGDJhj0wbPwkjXeEemmJSgc8QG0dUFZA", // Fundo Original Restaurado
   logoUrl: "https://lh3.googleusercontent.com/d/1BX58YbrIRFZiHCUyRlwXcXX6_Vkv079O", // Logo CardanCorp Atualizado
   headerLogoUrl: "https://lh3.googleusercontent.com/d/1N39JjKJuqlB55sDdesPsd9n1jUsojVBZ", // Logo Branco (App Expandido)
@@ -377,7 +377,10 @@ const App: React.FC = () => {
 
   // Efeito para Logout Automático por Inatividade (5 Minutos)
   useEffect(() => {
-    if (!isLoggedIn) return;
+    // Configuração para ativar ou desativar o logout automático
+    const ENABLE_AUTO_LOGOUT = false; // Mude para true quando quiser reativar
+
+    if (!isLoggedIn || !ENABLE_AUTO_LOGOUT) return;
 
     const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 Minutos em milissegundos
     let timeoutId: any; // Usando any para compatibilidade com NodeJS.Timeout do navegador
@@ -1052,7 +1055,7 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-        <div className={`flex h-screen overflow-hidden font-sans text-xs relative transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+        <div className={`flex h-screen overflow-hidden font-sans text-xs relative transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
         
         {/* SIDEBAR FLUTUANTE */}
         {!isLoggedIn ? null : (
@@ -1126,7 +1129,7 @@ const App: React.FC = () => {
         )}
 
         {/* MAIN CONTENT AREA */}
-        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isDarkMode ? 'bg-slate-900/50' : 'bg-slate-50/50'}`}>
+        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isDarkMode ? 'bg-slate-900/50' : 'bg-slate-100'}`}>
             
             {!isLoggedIn ? (
                 // Login Screen (Repetido do bloco anterior para manter integridade visual no backup)
