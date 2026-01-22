@@ -36,7 +36,7 @@ const CardanRow: React.FC<CardanRowProps> = ({
     <tr className={`transition-colors border-b last:border-0 group ${isDarkMode ? 'hover:bg-slate-800/50 border-slate-800' : 'hover:bg-slate-50 border-slate-100'}`}>
       
       {/* Cód. Interno */}
-      <td className="py-2.5 pl-4 pr-2 whitespace-nowrap align-middle">
+      <td className="py-2.5 pl-4 pr-2 whitespace-nowrap align-middle align-top">
         <div className="flex items-center gap-2 text-[11px] font-medium">
             <span className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}>{item.codInterno}</span>
             <button 
@@ -50,42 +50,49 @@ const CardanRow: React.FC<CardanRowProps> = ({
       </td>
 
       {/* Med. Tubo */}
-      <td className="py-2.5 px-2 align-middle">
+      <td className="py-2.5 px-2 align-middle align-top">
         <span className={`text-[11px] font-medium block leading-snug ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
           {item.medTubo || '-'}
         </span>
       </td>
 
       {/* ≠ Peças */}
-      <td className="py-2.5 px-2 align-middle">
+      <td className="py-2.5 px-2 align-middle align-top">
         <span className={`text-[11px] block leading-snug ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
           {item.pecas || '-'}
         </span>
       </td>
 
       {/* Cruzeta */}
-      <td className="py-2.5 px-2 align-middle">
+      <td className="py-2.5 px-2 align-middle align-top">
         <span className={`text-[11px] font-semibold block leading-snug ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
           {item.cruzeta || '-'}
         </span>
       </td>
 
       {/* Med. Cruzeta */}
-      <td className="py-2.5 px-2 align-middle">
+      <td className="py-2.5 px-2 align-middle align-top">
         <span className={`text-[11px] block leading-snug ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
           {item.medCruzeta || '-'}
         </span>
       </td>
 
+      {/* Observações (Nova Coluna) */}
+      <td className="py-2.5 px-2 align-middle align-top">
+        <span className={`text-[10px] block leading-tight whitespace-normal min-w-[150px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          {item.observacoes || '-'}
+        </span>
+      </td>
+
       {/* Valor */}
-      <td className="py-2.5 px-2 whitespace-nowrap text-right align-middle">
+      <td className="py-2.5 px-2 whitespace-nowrap text-right align-middle align-top">
         {hasPrice ? (
           <span className={`font-bold text-[11px] ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>R$ {value}</span>
         ) : null}
       </td>
 
       {/* Qtd. */}
-      <td className="py-2.5 px-2 align-middle">
+      <td className="py-2.5 px-2 align-middle align-top">
         {hasPrice && (
           <div className="flex items-center justify-center gap-1">
             <button 
@@ -109,7 +116,7 @@ const CardanRow: React.FC<CardanRowProps> = ({
       </td>
 
       {/* ADIC. */}
-      <td className="py-2.5 px-2 align-middle text-center pr-4">
+      <td className="py-2.5 px-2 align-middle text-center pr-4 align-top">
         {hasPrice && onAddToCart && (
             <button 
                 onClick={onAddToCart}

@@ -187,7 +187,7 @@ export const fetchSheetData = async (): Promise<{
     })).filter(k => k.veiculo !== '');
 
     // Process Cardan
-    // Modelo / Veiculo / Cód. Interno / Med. Tubo / ≠ Peças / Cruzeta / Med. Cruzeta / Valor
+    // Modelo (0) / Veiculo (1) / Cód. Interno (2) / Med. Tubo (3) / ≠ Peças (4) / Cruzeta (5) / Med. Cruzeta (6) / Observações (7) / Valor (8)
     const cardanRows = parseCSV(cardanText).slice(1);
     const cardan: CardanData[] = cardanRows.map(cols => ({
         modelo: cols[0]?.trim() || '',
@@ -197,7 +197,8 @@ export const fetchSheetData = async (): Promise<{
         pecas: cols[4]?.trim() || '',
         cruzeta: cols[5]?.trim() || '',
         medCruzeta: cols[6]?.trim() || '',
-        valor: cols[7]?.trim() || '',
+        observacoes: cols[7]?.trim() || '',
+        valor: cols[8]?.trim() || '',
     })).filter(c => c.modelo !== '' && c.veiculo !== '');
 
     return { catracas, kitRows, adaptacoes, kit3Eixo, cardan, users };

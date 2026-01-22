@@ -63,6 +63,7 @@ export interface CardanData {
   pecas: string;
   cruzeta: string;
   medCruzeta: string;
+  observacoes: string;
   valor: string;
 }
 

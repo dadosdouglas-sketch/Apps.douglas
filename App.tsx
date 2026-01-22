@@ -13,7 +13,7 @@ import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon,
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.4.1-darker-bg",
+  version: "3.5.0",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -1433,6 +1433,7 @@ const App: React.FC = () => {
                                                     <th className="px-2 py-2.5">≠ Peça</th>
                                                     <th className="px-2 py-2.5">Cruzeta</th>
                                                     <th className="px-2 py-2.5">Med. Cruzeta</th>
+                                                    <th className="px-2 py-2.5">Observações</th>
                                                     <th className="px-2 py-2.5 text-right">Valor</th>
                                                     <th className="px-2 py-2.5 text-center">Qtd.</th>
                                                     <th className="px-2 py-2.5 text-center pr-4">ADIC.</th>
