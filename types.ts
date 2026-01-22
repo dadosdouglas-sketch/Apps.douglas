@@ -56,6 +56,7 @@ export interface AdaptacaoData {
 }
 
 export interface CardanData {
+  modelo: string;
   veiculo: string;
   codInterno: string;
   medTubo: string;

@@ -179,6 +179,10 @@ const App: React.FC = () => {
   const [selectedVeiculo, setSelectedVeiculo] = useState<string>('');
   const [selectedUF, setSelectedUF] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  
+  // Cardan Specific States
+  const [selectedCardanModel, setSelectedCardanModel] = useState<string>('');
+  const [selectedCardanVehicle, setSelectedCardanVehicle] = useState<string>('');
 
   const [kitQuantities, setKitQuantities] = useState<Record<string, number>>({});
   const [catracaQuantities, setCatracaQuantities] = useState<Record<string, number>>({});
@@ -305,6 +309,8 @@ const App: React.FC = () => {
     setIsCuicaDupla(false);
     setIsEixoRedondo(false);
     setIsEixoTubular(false);
+    setSelectedCardanModel('');
+    setSelectedCardanVehicle('');
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -526,7 +532,17 @@ const App: React.FC = () => {
   const uniqueVehicles = useMemo(() => Array.from(new Set(catracasData.map(item => item.veiculo))).sort(), [catracasData]);
   const uniqueKitsVehicles = useMemo(() => Array.from(new Set(kitRows.map(item => item.veiculo))).sort(), [kitRows]);
   const unique3EixoVehicles = useMemo(() => Array.from(new Set(kit3EixoData.map(item => item.veiculo))).sort(), [kit3EixoData]);
-  const uniqueCardanVehicles = useMemo(() => Array.from(new Set(cardanData.map(item => item.veiculo))).sort(), [cardanData]);
+  
+  // Cardan Memoized Filters
+  const uniqueCardanModels = useMemo(() => Array.from(new Set(cardanData.map(item => item.modelo))).filter(Boolean).sort(), [cardanData]);
+  const availableCardanVehicles = useMemo(() => {
+    if (!selectedCardanModel) return [];
+    return Array.from(new Set(cardanData
+        .filter(item => item.modelo === selectedCardanModel)
+        .map(item => item.veiculo)
+    )).filter(Boolean).sort();
+  }, [cardanData, selectedCardanModel]);
+
 
   const filteredCatracas = useMemo(() => {
     let result = catracasData;
@@ -1345,10 +1361,56 @@ const App: React.FC = () => {
 
                         {activeTab === 'cardan' && (
                             <div className="animate-fade-in-up">
-                                {renderControls(uniqueCardanVehicles, "Modelo do Veículo", true, false)}
+                                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                                     <div className="flex-1">
+                                        <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
+                                        MODELO
+                                        </label>
+                                        <div className="relative">
+                                        <select 
+                                            value={selectedCardanModel} 
+                                            onChange={e => { setSelectedCardanModel(e.target.value); setSelectedCardanVehicle(''); }} 
+                                            className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'}`}
+                                        >
+                                            <option value="">Selecione um Modelo...</option>
+                                            {uniqueCardanModels.map(v => <option key={v} value={v}>{v}</option>)}
+                                        </select>
+                                        <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                                            <ChevronRightIcon className="w-4 h-4 rotate-90" />
+                                        </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
+                                        VEÍCULO
+                                        </label>
+                                        <div className="relative">
+                                        <select 
+                                            value={selectedCardanVehicle} 
+                                            onChange={e => setSelectedCardanVehicle(e.target.value)} 
+                                            disabled={!selectedCardanModel}
+                                            className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'} ${!selectedCardanModel ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <option value="">{selectedCardanModel ? "Selecione um Veículo..." : "Selecione primeiro o Modelo"}</option>
+                                            {availableCardanVehicles.map(v => <option key={v} value={v}>{v}</option>)}
+                                        </select>
+                                        <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                                            <ChevronRightIcon className="w-4 h-4 rotate-90" />
+                                        </div>
+                                        </div>
+                                    </div>
+                                     <div className="flex justify-end items-end">
+                                        <button 
+                                        onClick={handleClearFilters}
+                                        className={`h-9 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors whitespace-nowrap border ${isDarkMode ? 'text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800' : 'text-slate-500 border-slate-200 hover:text-blue-600 hover:bg-slate-50'}`}
+                                        >
+                                        LIMPAR
+                                        </button>
+                                     </div>
+                                </div>
                                 <div className="text-center py-12 text-slate-400">
                                     <CardanIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                                    <p className="text-xs">Selecione um modelo de veículo acima (Tabela em desenvolvimento).</p>
+                                    <p className="text-xs">{selectedCardanVehicle ? `Exibindo peças para ${selectedCardanVehicle} (Tabela em desenvolvimento)` : "Selecione um modelo e veículo acima para visualizar as peças."}</p>
                                 </div>
                             </div>
                         )}
