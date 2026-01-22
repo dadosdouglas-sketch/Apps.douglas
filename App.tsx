@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchSheetData, RawKitRow } from './services/sheetService';
-import { PartData, KitItemData, LoadingState, AdaptacaoData, Kit3EixoData, UserCredential, CartItem } from './types';
+import { PartData, KitItemData, LoadingState, AdaptacaoData, Kit3EixoData, CardanData, UserCredential, CartItem } from './types';
 import DetailCard from './components/DetailCard';
 import KitRow from './components/KitRow';
 import Kit3EixoRow from './components/Kit3EixoRow';
@@ -173,6 +173,7 @@ const App: React.FC = () => {
   const [kitRows, setKitRows] = useState<RawKitRow[]>([]);
   const [adaptacoesData, setAdaptacoesData] = useState<AdaptacaoData[]>([]);
   const [kit3EixoData, setKit3EixoData] = useState<Kit3EixoData[]>([]);
+  const [cardanData, setCardanData] = useState<CardanData[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>(LoadingState.IDLE);
   
   const [selectedVeiculo, setSelectedVeiculo] = useState<string>('');
@@ -278,11 +279,12 @@ const App: React.FC = () => {
   const loadData = async () => {
     setLoadingState(LoadingState.LOADING);
     try {
-      const { catracas, kitRows, adaptacoes, kit3Eixo, users } = await fetchSheetData();
+      const { catracas, kitRows, adaptacoes, kit3Eixo, cardan, users } = await fetchSheetData();
       setCatracasData(catracas);
       setKitRows(kitRows);
       setAdaptacoesData(adaptacoes);
       setKit3EixoData(kit3Eixo);
+      setCardanData(cardan);
       setAuthorizedUsers(users);
       setLoadingState(LoadingState.SUCCESS);
     } catch (error) {
@@ -524,6 +526,7 @@ const App: React.FC = () => {
   const uniqueVehicles = useMemo(() => Array.from(new Set(catracasData.map(item => item.veiculo))).sort(), [catracasData]);
   const uniqueKitsVehicles = useMemo(() => Array.from(new Set(kitRows.map(item => item.veiculo))).sort(), [kitRows]);
   const unique3EixoVehicles = useMemo(() => Array.from(new Set(kit3EixoData.map(item => item.veiculo))).sort(), [kit3EixoData]);
+  const uniqueCardanVehicles = useMemo(() => Array.from(new Set(cardanData.map(item => item.veiculo))).sort(), [cardanData]);
 
   const filteredCatracas = useMemo(() => {
     let result = catracasData;
@@ -1342,9 +1345,10 @@ const App: React.FC = () => {
 
                         {activeTab === 'cardan' && (
                             <div className="animate-fade-in-up">
+                                {renderControls(uniqueCardanVehicles, "Modelo do Veículo", true, false)}
                                 <div className="text-center py-12 text-slate-400">
                                     <CardanIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                                    <p className="text-xs">Esta seção está em construção.</p>
+                                    <p className="text-xs">Selecione um modelo de veículo acima (Tabela em desenvolvimento).</p>
                                 </div>
                             </div>
                         )}

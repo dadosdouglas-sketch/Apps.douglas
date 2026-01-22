@@ -55,6 +55,16 @@ export interface AdaptacaoData {
   op: string;
 }
 
+export interface CardanData {
+  veiculo: string;
+  codInterno: string;
+  medTubo: string;
+  pecas: string;
+  cruzeta: string;
+  medCruzeta: string;
+  valor: string;
+}
+
 export interface UserCredential {
   usuario: string;
   senha: string;

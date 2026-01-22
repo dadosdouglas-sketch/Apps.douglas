@@ -1,4 +1,4 @@
-import { PartData, KitItemData, AdaptacaoData, Kit3EixoData, UserCredential } from '../types';
+import { PartData, KitItemData, AdaptacaoData, Kit3EixoData, CardanData, UserCredential } from '../types';
 
 // =========================================================================================
 // CONFIGURAÇÃO DOS LINKS CSV
@@ -8,6 +8,7 @@ const MASTER_PARTS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRRP4-
 const KITS_FULL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6Xcw-LbNyXrKhle8AW37zq0eYLIpHZLwgzA9Uc87-xsFwyzJaHesHl7DECmEhsbn353qjTV0AWuMt/pub?output=csv';
 const ADAPTACOES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtKaSH5Yjj3OawT5phTfyXKvBsUQISzGj5Zq6Ex7swLUFGJyU8resWHU9VoUG6vDr4s-n4cLgE0XPy/pub?output=csv';
 const KIT_3EIXO_URL = 'https://docs.google.com/spreadsheets/d/1jopMxv3-GMKrWQGDXdsqpuf8FStACQBT4WOvGOl8pVI/export?format=csv';
+const CARDAN_URL = 'https://docs.google.com/spreadsheets/d/1brLBB3K9SDaYY5DM5Axu49i2HymI9hL2G0N5Bz8rYQg/export?format=csv';
 
 // -----------------------------------------------------------------------------------------
 // CONFIGURAÇÃO DE USUÁRIOS (NOVA PLANILHA UNIFICADA)
@@ -88,6 +89,7 @@ export const fetchSheetData = async (): Promise<{
   kitRows: RawKitRow[],
   adaptacoes: AdaptacaoData[],
   kit3Eixo: Kit3EixoData[],
+  cardan: CardanData[],
   users: UserCredential[]
 }> => {
   try {
@@ -95,13 +97,15 @@ export const fetchSheetData = async (): Promise<{
     const kitsPromise = fetchCSVText(KITS_FULL_URL).catch(() => '');
     const adaptacoesPromise = fetchCSVText(ADAPTACOES_URL).catch(() => '');
     const kit3EixoPromise = fetchCSVText(KIT_3EIXO_URL).catch(() => '');
+    const cardanPromise = fetchCSVText(CARDAN_URL).catch(() => '');
     const usersPromise = fetchCSVText(USERS_UNIFIED_URL).catch(() => '');
 
-    const [partsText, kitsText, adaptacoesText, kit3EixoText, usersText] = await Promise.all([
+    const [partsText, kitsText, adaptacoesText, kit3EixoText, cardanText, usersText] = await Promise.all([
       partsPromise, 
       kitsPromise, 
       adaptacoesPromise, 
       kit3EixoPromise,
+      cardanPromise,
       usersPromise
     ]);
     
@@ -182,7 +186,20 @@ export const fetchSheetData = async (): Promise<{
       configuracao: cols[7]?.trim() || '',
     })).filter(k => k.veiculo !== '');
 
-    return { catracas, kitRows, adaptacoes, kit3Eixo, users };
+    // Process Cardan
+    // Veiculo / Cód. Interno / Med. Tubo / ≠ Peças / Cruzeta / Med. Cruzeta / Valor
+    const cardanRows = parseCSV(cardanText).slice(1);
+    const cardan: CardanData[] = cardanRows.map(cols => ({
+        veiculo: cols[0]?.trim() || '',
+        codInterno: cols[1]?.trim() || '',
+        medTubo: cols[2]?.trim() || '',
+        pecas: cols[3]?.trim() || '',
+        cruzeta: cols[4]?.trim() || '',
+        medCruzeta: cols[5]?.trim() || '',
+        valor: cols[6]?.trim() || '',
+    })).filter(c => c.veiculo !== '');
+
+    return { catracas, kitRows, adaptacoes, kit3Eixo, cardan, users };
   } catch (error) {
     console.error("Error fetching sheet:", error);
     throw error;
