@@ -79,7 +79,7 @@ const CardanRow: React.FC<CardanRowProps> = ({
 
       {/* Observações (Nova Coluna) */}
       <td className="py-2.5 px-2 align-middle align-top">
-        <span className={`text-[10px] block leading-tight whitespace-normal min-w-[150px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+        <span className={`text-[10px] block leading-tight whitespace-pre-line min-w-[150px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
           {item.observacoes || '-'}
         </span>
       </td>
