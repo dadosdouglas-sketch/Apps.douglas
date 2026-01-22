@@ -4,6 +4,7 @@ import { PartData, KitItemData, LoadingState, AdaptacaoData, Kit3EixoData, Carda
 import DetailCard from './components/DetailCard';
 import KitRow from './components/KitRow';
 import Kit3EixoRow from './components/Kit3EixoRow';
+import CardanRow from './components/CardanRow';
 import AdaptacaoCard from './components/AdaptacaoCard';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon, SunIcon, MoonStarsIcon, EyeIcon, EyeOffIcon, CopyIcon, CheckIcon, PackageIcon, DownloadIcon, CardanIcon } from './components/Icons';
@@ -187,6 +188,8 @@ const App: React.FC = () => {
   const [kitQuantities, setKitQuantities] = useState<Record<string, number>>({});
   const [catracaQuantities, setCatracaQuantities] = useState<Record<string, number>>({});
   const [kit3EixoQuantities, setKit3EixoQuantities] = useState<Record<string, number>>({});
+  const [cardanQuantities, setCardanQuantities] = useState<Record<string, number>>({});
+
   const [isConsumerFinal, setIsConsumerFinal] = useState<boolean>(false);
   
   // Novos estados para Cuica Simples e Dupla
@@ -258,6 +261,7 @@ const App: React.FC = () => {
     // Resetar quantidades das outras abas
     setKitQuantities({});
     setCatracaQuantities({});
+    setCardanQuantities({});
 
     // Para Kit 3º Eixo: Preencher com quantidades padrão da planilha
     if (selectedVeiculo && kit3EixoData.length > 0) {
@@ -311,6 +315,7 @@ const App: React.FC = () => {
     setIsEixoTubular(false);
     setSelectedCardanModel('');
     setSelectedCardanVehicle('');
+    setCardanQuantities({});
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -446,7 +451,7 @@ const App: React.FC = () => {
         id: item.codInterno || item.tipoItem, // Fallback para ID
         codInterno: item.codInterno,
         codFreiocar: item.codFreiocar,
-        descricao: item.aplicacao || item.descricao || (item.configuracao ? item.configuracao : item.tipo), // Fallback de descrição
+        descricao: item.aplicacao || item.descricao || (item.configuracao ? item.configuracao : item.tipo) || item.pecas, // Fallback de descrição
         valorUnitario: valorUnitario,
         quantidade: quantityToAdd,
         tipo: type,
@@ -542,6 +547,14 @@ const App: React.FC = () => {
         .map(item => item.veiculo)
     )).filter(Boolean).sort();
   }, [cardanData, selectedCardanModel]);
+
+  const filteredCardanItems = useMemo(() => {
+    if (!selectedCardanModel || !selectedCardanVehicle) return [];
+    return cardanData.filter(item => 
+        item.modelo === selectedCardanModel && 
+        item.veiculo === selectedCardanVehicle
+    );
+  }, [cardanData, selectedCardanModel, selectedCardanVehicle]);
 
 
   const filteredCatracas = useMemo(() => {
@@ -659,6 +672,8 @@ const App: React.FC = () => {
             });
         } else if (activeTab === 'kit3eixo') {
             filtered3EixoItems.forEach(item => subtotal += parsePrice(item.valor) * (kit3EixoQuantities[item.codInterno] || 0));
+        } else if (activeTab === 'cardan') {
+            filteredCardanItems.forEach(item => subtotal += parsePrice(item.valor) * (cardanQuantities[item.codInterno] || 0));
         }
     }
 
@@ -666,7 +681,7 @@ const App: React.FC = () => {
     let total = subtotal + ipi;
     if (isConsumerFinal) total *= 1.05;
     return { subtotal, ipi, total };
-  }, [kitQuantities, catracaQuantities, kit3EixoQuantities, activeTab, filteredKitItems, catracasData, filtered3EixoItems, activeRate, isConsumerFinal, filtered3EixoItems, cartItems]);
+  }, [kitQuantities, catracaQuantities, kit3EixoQuantities, cardanQuantities, activeTab, filteredKitItems, catracasData, filtered3EixoItems, filteredCardanItems, activeRate, isConsumerFinal, cartItems]);
 
   const selectedKitObservation = useMemo(() => {
     if (activeTab !== 'kits' || !selectedVeiculo) return '';
@@ -954,9 +969,9 @@ const App: React.FC = () => {
     if (activeTab === 'adaptacoes') return true; 
     if (activeTab === 'pedidos') return true;
     if (activeTab === 'componentes') return false;
-    if (activeTab === 'cardan') return false;
+    if (activeTab === 'cardan') return !!(selectedCardanModel && selectedCardanVehicle);
     return !!selectedVeiculo || searchTerm.length > 0;
-  }, [activeTab, selectedVeiculo, searchTerm]);
+  }, [activeTab, selectedVeiculo, searchTerm, selectedCardanModel, selectedCardanVehicle]);
 
   const renderControls = (options: string[], label: string, showSearch: boolean = true, showStateIcms: boolean = true) => {
     // Cálculo automático do ICMS baseado no estado selecionado
@@ -1361,8 +1376,8 @@ const App: React.FC = () => {
 
                         {activeTab === 'cardan' && (
                             <div className="animate-fade-in-up">
-                                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                                     <div className="flex-1">
+                                <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
+                                     <div className="w-full md:w-[30%]">
                                         <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
                                         MODELO
                                         </label>
@@ -1380,7 +1395,7 @@ const App: React.FC = () => {
                                         </div>
                                         </div>
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="w-full md:flex-1">
                                         <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
                                         VEÍCULO
                                         </label>
@@ -1399,7 +1414,7 @@ const App: React.FC = () => {
                                         </div>
                                         </div>
                                     </div>
-                                     <div className="flex justify-end items-end">
+                                     <div className="w-auto">
                                         <button 
                                         onClick={handleClearFilters}
                                         className={`h-9 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors whitespace-nowrap border ${isDarkMode ? 'text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800' : 'text-slate-500 border-slate-200 hover:text-blue-600 hover:bg-slate-50'}`}
@@ -1408,10 +1423,43 @@ const App: React.FC = () => {
                                         </button>
                                      </div>
                                 </div>
-                                <div className="text-center py-12 text-slate-400">
-                                    <CardanIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                                    <p className="text-xs">{selectedCardanVehicle ? `Exibindo peças para ${selectedCardanVehicle} (Tabela em desenvolvimento)` : "Selecione um modelo e veículo acima para visualizar as peças."}</p>
-                                </div>
+                                {showTable ? (
+                                    <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                        <table className="w-full text-left">
+                                            <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+                                                <tr>
+                                                    <th className="pl-4 pr-2 py-2.5">Cód. Interno</th>
+                                                    <th className="px-2 py-2.5">Med. Tubo</th>
+                                                    <th className="px-2 py-2.5">≠ Peça</th>
+                                                    <th className="px-2 py-2.5">Cruzeta</th>
+                                                    <th className="px-2 py-2.5">Med. Cruzeta</th>
+                                                    <th className="px-2 py-2.5 text-right">Valor</th>
+                                                    <th className="px-2 py-2.5 text-center">Qtd.</th>
+                                                    <th className="px-2 py-2.5 text-center pr-4">ADIC.</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
+                                                {filteredCardanItems.map((item, idx) => (
+                                                    <CardanRow 
+                                                        key={`${item.codInterno}-${idx}`}
+                                                        item={item}
+                                                        quantity={cardanQuantities[item.codInterno] || 0}
+                                                        onIncrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: (p[item.codInterno] || 0) + 1}))}
+                                                        onDecrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: Math.max(0, (p[item.codInterno] || 0) - 1)}))}
+                                                        onAddToCart={() => handleAddToCart(item, 'catraca', item.valor, Math.max(1, cardanQuantities[item.codInterno] || 0))}
+                                                        isInCart={cartItems.some(i => i.id === item.codInterno)}
+                                                        isDarkMode={isDarkMode}
+                                                    />
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12 text-slate-400">
+                                        <CardanIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                                        <p className="text-xs">{selectedCardanVehicle ? `Nenhum item encontrado para ${selectedCardanVehicle}` : "Selecione um modelo e veículo acima para visualizar as peças."}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
