@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchSheetData, RawKitRow } from './services/sheetService';
-import { PartData, KitItemData, LoadingState, AdaptacaoData, Kit3EixoData, CardanData, UserCredential, CartItem } from './types';
+import { PartData, KitItemData, LoadingState, AdaptacaoData, Kit3EixoData, CardanData, MascarelloData, UserCredential, CartItem } from './types';
 import DetailCard from './components/DetailCard';
 import KitRow from './components/KitRow';
 import Kit3EixoRow from './components/Kit3EixoRow';
 import CardanRow from './components/CardanRow';
 import AdaptacaoCard from './components/AdaptacaoCard';
 import ErrorBoundary from './components/ErrorBoundary';
-import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon, SunIcon, MoonStarsIcon, EyeIcon, EyeOffIcon, CopyIcon, CheckIcon, PackageIcon, DownloadIcon, CardanIcon } from './components/Icons';
+import { SearchIcon, RefreshIcon, WrenchIcon, DiscIcon, FaTruckMoving, AxleIcon, LogoutIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, InfoIcon, ShoppingCartIcon, BrakeDiscIcon, FastTruckIcon, SlackAdjusterIcon, TruckIcon, TrashIcon, PrinterIcon, BrakeComponentsIcon, SunIcon, MoonStarsIcon, EyeIcon, EyeOffIcon, CopyIcon, CheckIcon, PackageIcon, DownloadIcon, CardanIcon, MIcon } from './components/Icons';
 
 // =========================================================
 // PONTO DE RESTAURAÇÃO: CONFIGURAÇÃO ESTÁVEL DE INTERFACE
 // =========================================================
 const UI_STABLE_CONFIG = {
-  version: "3.5.1",
+  version: "3.5.6",
   primaryColor: "bg-blue-600",
   secondaryColor: "bg-white",
   // Cores atualizadas para o novo estilo minimalista com barra indicadora e rodapé fixo
@@ -81,14 +81,16 @@ interface ClientData {
   observacao: string;
 }
 
+interface CartRowProps {
+    item: CartItem;
+    isDarkMode: boolean;
+    formatCurrency: (val: number) => string;
+    handleUpdateCartQuantity: (id: string, delta: number) => void;
+    handleRemoveFromCart: (id: string) => void;
+}
+
 // Sub-componente para Linha do Carrinho (para gerenciar estado de copia individual)
-const CartRow = ({ item, isDarkMode, formatCurrency, handleUpdateCartQuantity, handleRemoveFromCart }: { 
-    item: CartItem, 
-    isDarkMode: boolean, 
-    formatCurrency: (val: number) => string,
-    handleUpdateCartQuantity: (id: string, delta: number) => void,
-    handleRemoveFromCart: (id: string) => void
-}) => {
+const CartRow: React.FC<CartRowProps> = ({ item, isDarkMode, formatCurrency, handleUpdateCartQuantity, handleRemoveFromCart }) => {
     const [copied, setCopied] = useState(false);
 
     const copyToClipboard = (text: string) => {
@@ -175,6 +177,7 @@ const App: React.FC = () => {
   const [adaptacoesData, setAdaptacoesData] = useState<AdaptacaoData[]>([]);
   const [kit3EixoData, setKit3EixoData] = useState<Kit3EixoData[]>([]);
   const [cardanData, setCardanData] = useState<CardanData[]>([]);
+  const [mascarelloData, setMascarelloData] = useState<MascarelloData[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>(LoadingState.IDLE);
   
   const [selectedVeiculo, setSelectedVeiculo] = useState<string>('');
@@ -184,6 +187,12 @@ const App: React.FC = () => {
   // Cardan Specific States
   const [selectedCardanModel, setSelectedCardanModel] = useState<string>('');
   const [selectedCardanVehicle, setSelectedCardanVehicle] = useState<string>('');
+  const [cardanSubTab, setCardanSubTab] = useState<'geral' | 'mascarello'>('geral');
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+
+  // Mascarello Specific States
+  const [selectedMascarelloClient, setSelectedMascarelloClient] = useState<string>('');
+  const [selectedMascarelloType, setSelectedMascarelloType] = useState<string>(''); // Novo, Alongar, Encurtar
 
   const [kitQuantities, setKitQuantities] = useState<Record<string, number>>({});
   const [catracaQuantities, setCatracaQuantities] = useState<Record<string, number>>({});
@@ -287,12 +296,13 @@ const App: React.FC = () => {
   const loadData = async () => {
     setLoadingState(LoadingState.LOADING);
     try {
-      const { catracas, kitRows, adaptacoes, kit3Eixo, cardan, users } = await fetchSheetData();
+      const { catracas, kitRows, adaptacoes, kit3Eixo, cardan, mascarello, users } = await fetchSheetData();
       setCatracasData(catracas);
       setKitRows(kitRows);
       setAdaptacoesData(adaptacoes);
       setKit3EixoData(kit3Eixo);
       setCardanData(cardan);
+      setMascarelloData(mascarello);
       setAuthorizedUsers(users);
       setLoadingState(LoadingState.SUCCESS);
     } catch (error) {
@@ -315,6 +325,8 @@ const App: React.FC = () => {
     setIsEixoTubular(false);
     setSelectedCardanModel('');
     setSelectedCardanVehicle('');
+    setSelectedMascarelloClient('');
+    setSelectedMascarelloType('');
     setCardanQuantities({});
   };
 
@@ -533,6 +545,12 @@ const App: React.FC = () => {
     setIsConsumerFinal(false);
   };
 
+  const handleToggleMenu = (menuId: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuId) ? prev.filter(id => id !== menuId) : [...prev, menuId]
+    );
+  };
+
 
   const uniqueVehicles = useMemo(() => Array.from(new Set(catracasData.map(item => item.veiculo))).sort(), [catracasData]);
   const uniqueKitsVehicles = useMemo(() => Array.from(new Set(kitRows.map(item => item.veiculo))).sort(), [kitRows]);
@@ -555,6 +573,44 @@ const App: React.FC = () => {
         item.veiculo === selectedCardanVehicle
     );
   }, [cardanData, selectedCardanModel, selectedCardanVehicle]);
+
+  // Mascarello Memoized Filters
+  const uniqueMascarelloClients = useMemo(() => {
+    return Array.from(new Set(mascarelloData.map(m => m.codCliente))).filter(Boolean).sort();
+  }, [mascarelloData]);
+
+  // Helper to determine price based on type
+  const getMascarelloPrice = (item: MascarelloData, type: string) => {
+    switch (type) {
+        case 'Cardan Novo': return item.valorNovo;
+        case 'Serviço de Alongamento': return item.valorAlongar;
+        case 'Serviço de Encurtamento': return item.valorEncurtar;
+        default: return '0,00';
+    }
+  };
+
+  const filteredMascarelloItems = useMemo(() => {
+    if (!selectedMascarelloClient) return [];
+    
+    let result = mascarelloData.filter(item => item.codCliente === selectedMascarelloClient);
+
+    if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase().trim();
+        result = result.filter(item => 
+            item.codInterno.toLowerCase().includes(term) ||
+            item.codCliente.toLowerCase().includes(term)
+        );
+    }
+    return result;
+  }, [mascarelloData, selectedMascarelloClient, searchTerm]);
+
+  const selectedMascarelloObservation = useMemo(() => {
+    // Pega a observação do primeiro item filtrado (assumindo que seja relevante para o cliente/grupo)
+    if (filteredMascarelloItems.length > 0) {
+        return filteredMascarelloItems[0].observacao;
+    }
+    return '';
+  }, [filteredMascarelloItems]);
 
 
   const filteredCatracas = useMemo(() => {
@@ -663,17 +719,25 @@ const App: React.FC = () => {
         if (activeTab === 'kits') {
             Object.entries(kitQuantities).forEach(([key, qty]) => {
                 const item = filteredKitItems.find(i => i.tipoItem === key); 
-                if (item) subtotal += parsePrice(activeRate === 'icms12' ? item.icms12 : (activeRate === 'icms7' ? item.icms7 : item.icms17)) * qty;
+                if (item) subtotal += parsePrice(activeRate === 'icms12' ? item.icms12 : (activeRate === 'icms7' ? item.icms7 : item.icms17)) * (qty as number);
             });
         } else if (activeTab === 'catracas') {
             Object.entries(catracaQuantities).forEach(([id, qty]) => {
                 const part = catracasData.find(p => p.codInterno === id);
-                if (part) subtotal += parsePrice(activeRate === 'icms12' ? part.icms12 : (activeRate === 'icms7' ? part.icms7 : part.icms17)) * qty;
+                if (part) subtotal += parsePrice(activeRate === 'icms12' ? part.icms12 : (activeRate === 'icms7' ? part.icms7 : part.icms17)) * (qty as number);
             });
         } else if (activeTab === 'kit3eixo') {
             filtered3EixoItems.forEach(item => subtotal += parsePrice(item.valor) * (kit3EixoQuantities[item.codInterno] || 0));
         } else if (activeTab === 'cardan') {
-            filteredCardanItems.forEach(item => subtotal += parsePrice(item.valor) * (cardanQuantities[item.codInterno] || 0));
+            // Se for Mascarello, usa o preço dinâmico
+            if (cardanSubTab === 'mascarello') {
+                filteredMascarelloItems.forEach(item => {
+                    const price = getMascarelloPrice(item, selectedMascarelloType);
+                    subtotal += parsePrice(price) * (cardanQuantities[item.codInterno] || 0);
+                });
+            } else {
+                filteredCardanItems.forEach(item => subtotal += parsePrice(item.valor) * (cardanQuantities[item.codInterno] || 0));
+            }
         }
     }
 
@@ -681,7 +745,7 @@ const App: React.FC = () => {
     let total = subtotal + ipi;
     if (isConsumerFinal) total *= 1.05;
     return { subtotal, ipi, total };
-  }, [kitQuantities, catracaQuantities, kit3EixoQuantities, cardanQuantities, activeTab, filteredKitItems, catracasData, filtered3EixoItems, filteredCardanItems, activeRate, isConsumerFinal, cartItems]);
+  }, [kitQuantities, catracaQuantities, kit3EixoQuantities, cardanQuantities, activeTab, filteredKitItems, catracasData, filtered3EixoItems, filteredCardanItems, filteredMascarelloItems, selectedMascarelloType, cardanSubTab, activeRate, isConsumerFinal, cartItems]);
 
   const selectedKitObservation = useMemo(() => {
     if (activeTab !== 'kits' || !selectedVeiculo) return '';
@@ -690,6 +754,7 @@ const App: React.FC = () => {
   }, [activeTab, selectedVeiculo, kitRows]);
 
   const handlePrintOrder = () => {
+    // ... (Mantido igual)
     if (cartItems.length === 0) return;
 
     const printWindow = window.open('', '', 'height=800,width=800');
@@ -898,6 +963,7 @@ const App: React.FC = () => {
   };
 
   const menuItems = useMemo(() => {
+    // ... (Mantido igual)
     // Regras de Visualização
     const isCardancorp = currentUserRole === 'Cardancorp';
     const isConcessionaria = currentUserRole === 'Concessionaria';
@@ -941,7 +1007,10 @@ const App: React.FC = () => {
         id: 'cardan',
         label: 'Cardan',
         icon: <CardanIcon />,
-        visible: isAdmin || isRepresentante // Cardancorp + Representante
+        visible: isAdmin || isRepresentante, // Cardancorp + Representante
+        subItems: [
+            { id: 'mascarello', label: 'Mascarello', icon: <MIcon /> }
+        ]
       },
       {
         id: 'pedidos',
@@ -960,20 +1029,28 @@ const App: React.FC = () => {
       case 'adaptacoes': return 'Adaptações 3º Eixo';
       case 'pedidos': return 'Pedido de Itens';
       case 'componentes': return 'Componentes';
-      case 'cardan': return 'Cardan';
+      case 'cardan': 
+        if (cardanSubTab === 'mascarello') return 'Cardan - Mascarello';
+        return 'Cardan';
       default: return '';
     }
-  }, [activeTab]);
+  }, [activeTab, cardanSubTab]);
 
   const showTable = useMemo(() => {
     if (activeTab === 'adaptacoes') return true; 
     if (activeTab === 'pedidos') return true;
     if (activeTab === 'componentes') return false;
-    if (activeTab === 'cardan') return !!(selectedCardanModel && selectedCardanVehicle);
+    if (activeTab === 'cardan') {
+        if (cardanSubTab === 'mascarello') {
+            return !!(selectedMascarelloClient && selectedMascarelloType);
+        }
+        return !!(selectedCardanModel && selectedCardanVehicle);
+    }
     return !!selectedVeiculo || searchTerm.length > 0;
-  }, [activeTab, selectedVeiculo, searchTerm, selectedCardanModel, selectedCardanVehicle]);
+  }, [activeTab, selectedVeiculo, searchTerm, selectedCardanModel, selectedCardanVehicle, cardanSubTab, selectedMascarelloClient, selectedMascarelloType]);
 
   const renderControls = (options: string[], label: string, showSearch: boolean = true, showStateIcms: boolean = true) => {
+    // ... (Mantido igual)
     // Cálculo automático do ICMS baseado no estado selecionado
     let icmsValue = '17%';
     if (selectedUF) {
@@ -1119,29 +1196,81 @@ const App: React.FC = () => {
                 <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto overflow-x-hidden py-3 custom-scrollbar-none">
                 {menuItems.filter(m => m.visible).map((item) => {
                     const isActive = activeTab === item.id;
-                    return (
-                    <button
-                        key={item.id}
-                        onClick={() => { setActiveTab(item.id as TabType); handleClearFilters(); }}
-                        className={`
-                        w-full flex items-center rounded-lg font-medium transition-all duration-200 group relative
-                        ${isSidebarCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-1.5 text-[11px]'} 
-                        ${isActive ? 'text-white bg-white/10' : 'text-blue-300 hover:text-white hover:bg-white/5'}
-                        `}
-                        title={isSidebarCollapsed ? item.label : ''}
-                    >
-                        {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"></span>
-                        )}
+                    const isExpanded = expandedMenus.includes(item.id);
+                    const hasSubItems = item.subItems && item.subItems.length > 0;
 
-                        <span className={`shrink-0 ${isActive ? 'text-white' : 'text-blue-300 group-hover:text-white'}`}>
-                        {React.cloneElement(item.icon as React.ReactElement<{ className?: string }>, { className: "w-3.5 h-3.5" })}
-                        </span>
-                        
-                        <span className={`whitespace-nowrap transition-all duration-300 ${isSidebarCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
-                        {item.label}
-                        </span>
-                    </button>
+                    return (
+                    <div key={item.id}>
+                        <button
+                            onClick={() => { 
+                                if (hasSubItems) {
+                                    handleToggleMenu(item.id);
+                                    // Se clicar no item Pai (Cardan), volta para a visão Geral
+                                    if (item.id === 'cardan') {
+                                        setCardanSubTab('geral');
+                                    }
+                                    if (!isActive) {
+                                        setActiveTab(item.id as TabType);
+                                        handleClearFilters();
+                                    }
+                                } else {
+                                    setActiveTab(item.id as TabType);
+                                    handleClearFilters();
+                                }
+                            }}
+                            className={`
+                            w-full flex items-center rounded-lg font-medium transition-all duration-200 group relative
+                            ${isSidebarCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-1.5 text-[11px]'} 
+                            ${isActive ? 'text-white bg-white/10' : 'text-blue-300 hover:text-white hover:bg-white/5'}
+                            `}
+                            title={isSidebarCollapsed ? item.label : ''}
+                        >
+                            {isActive && !isSidebarCollapsed && !hasSubItems && (
+                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.4)]"></span>
+                            )}
+
+                            <span className={`shrink-0 ${isActive ? 'text-white' : 'text-blue-300 group-hover:text-white'}`}>
+                            {React.cloneElement(item.icon as React.ReactElement<{ className?: string }>, { className: "w-3.5 h-3.5" })}
+                            </span>
+                            
+                            <span className={`whitespace-nowrap transition-all duration-300 flex-1 text-left ${isSidebarCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
+                            {item.label}
+                            </span>
+
+                            {hasSubItems && !isSidebarCollapsed && (
+                                <ChevronRightIcon className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                            )}
+                        </button>
+
+                        {/* Sub Menu Rendering */}
+                        {hasSubItems && isExpanded && !isSidebarCollapsed && (
+                            <div className="ml-4 pl-2 border-l border-blue-400/30 mt-1 space-y-1">
+                                {item.subItems?.map(subItem => {
+                                    const isSubActive = cardanSubTab === subItem.id;
+                                    return (
+                                        <button
+                                            key={subItem.id}
+                                            onClick={() => {
+                                                setActiveTab(item.id as TabType);
+                                                setCardanSubTab(subItem.id as 'geral' | 'mascarello');
+                                                // Optional: handleClearFilters() if switching sub-tabs should reset filters
+                                            }}
+                                            className={`
+                                                w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200
+                                                ${isSubActive 
+                                                    ? 'text-white bg-white/10' 
+                                                    : 'text-blue-300 hover:text-white hover:bg-white/5'
+                                                }
+                                            `}
+                                        >
+                                            {subItem.icon && React.cloneElement(subItem.icon as React.ReactElement<{ className?: string }>, { className: "w-3 h-3 opacity-70" })}
+                                            <span>{subItem.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                     );
                 })}
                 </nav>
@@ -1166,7 +1295,7 @@ const App: React.FC = () => {
         <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isDarkMode ? 'bg-slate-900/50' : 'bg-slate-100'}`}>
             
             {!isLoggedIn ? (
-                // Login Screen (Repetido do bloco anterior para manter integridade visual no backup)
+                // Login Screen (Mantido)
                 <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
                     <div className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat" style={{ backgroundImage: `url(${UI_STABLE_CONFIG.loginBgUrl})` }} />
                     <div className="absolute inset-0 z-0 bg-slate-900/40 backdrop-blur-[2px]" />
@@ -1263,6 +1392,7 @@ const App: React.FC = () => {
                     <div className="max-w-6xl mx-auto space-y-5">
                         
                         {activeTab === 'catracas' && (
+                            // ... (Conteúdo de Catracas mantido)
                             <div className="animate-fade-in-up">
                                 {renderControls(uniqueVehicles, "Modelo do Veículo", true)}
                                 {showTable ? (
@@ -1312,6 +1442,7 @@ const App: React.FC = () => {
                         )}
 
                         {activeTab === 'kits' && (
+                            // ... (Conteúdo de Kits mantido)
                             <div className="animate-fade-in-up">
                                 {renderControls(uniqueKitsVehicles, "Modelo do Veículo", true)}
                                 {selectedKitObservation && (
@@ -1376,95 +1507,237 @@ const App: React.FC = () => {
 
                         {activeTab === 'cardan' && (
                             <div className="animate-fade-in-up">
-                                <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
-                                     <div className="w-full md:w-[30%]">
-                                        <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
-                                        MODELO
-                                        </label>
-                                        <div className="relative">
-                                        <select 
-                                            value={selectedCardanModel} 
-                                            onChange={e => { setSelectedCardanModel(e.target.value); setSelectedCardanVehicle(''); }} 
-                                            className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'}`}
-                                        >
-                                            <option value="">Selecione um Modelo...</option>
-                                            {uniqueCardanModels.map(v => <option key={v} value={v}>{v}</option>)}
-                                        </select>
-                                        <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
-                                            <ChevronRightIcon className="w-4 h-4 rotate-90" />
+                                {cardanSubTab === 'geral' ? (
+                                    <>
+                                        <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
+                                            <div className="w-full md:w-[30%]">
+                                                <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
+                                                MODELO
+                                                </label>
+                                                <div className="relative">
+                                                <select 
+                                                    value={selectedCardanModel} 
+                                                    onChange={e => { setSelectedCardanModel(e.target.value); setSelectedCardanVehicle(''); }} 
+                                                    className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'}`}
+                                                >
+                                                    <option value="">Selecione um Modelo...</option>
+                                                    {uniqueCardanModels.map(v => <option key={v} value={v}>{v}</option>)}
+                                                </select>
+                                                <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                                                    <ChevronRightIcon className="w-4 h-4 rotate-90" />
+                                                </div>
+                                                </div>
+                                            </div>
+                                            <div className="w-full md:flex-1">
+                                                <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
+                                                VEÍCULO
+                                                </label>
+                                                <div className="relative">
+                                                <select 
+                                                    value={selectedCardanVehicle} 
+                                                    onChange={e => setSelectedCardanVehicle(e.target.value)} 
+                                                    disabled={!selectedCardanModel}
+                                                    className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'} ${!selectedCardanModel ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                >
+                                                    <option value="">{selectedCardanModel ? "Selecione um Veículo..." : "Selecione primeiro o Modelo"}</option>
+                                                    {availableCardanVehicles.map(v => <option key={v} value={v}>{v}</option>)}
+                                                </select>
+                                                <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                                                    <ChevronRightIcon className="w-4 h-4 rotate-90" />
+                                                </div>
+                                                </div>
+                                            </div>
+                                            <div className="w-auto">
+                                                <button 
+                                                onClick={handleClearFilters}
+                                                className={`h-9 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors whitespace-nowrap border ${isDarkMode ? 'text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800' : 'text-slate-500 border-slate-200 hover:text-blue-600 hover:bg-slate-50'}`}
+                                                >
+                                                LIMPAR
+                                                </button>
+                                            </div>
                                         </div>
-                                        </div>
-                                    </div>
-                                    <div className="w-full md:flex-1">
-                                        <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
-                                        VEÍCULO
-                                        </label>
-                                        <div className="relative">
-                                        <select 
-                                            value={selectedCardanVehicle} 
-                                            onChange={e => setSelectedCardanVehicle(e.target.value)} 
-                                            disabled={!selectedCardanModel}
-                                            className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'} ${!selectedCardanModel ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        >
-                                            <option value="">{selectedCardanModel ? "Selecione um Veículo..." : "Selecione primeiro o Modelo"}</option>
-                                            {availableCardanVehicles.map(v => <option key={v} value={v}>{v}</option>)}
-                                        </select>
-                                        <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
-                                            <ChevronRightIcon className="w-4 h-4 rotate-90" />
-                                        </div>
-                                        </div>
-                                    </div>
-                                     <div className="w-auto">
-                                        <button 
-                                        onClick={handleClearFilters}
-                                        className={`h-9 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors whitespace-nowrap border ${isDarkMode ? 'text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800' : 'text-slate-500 border-slate-200 hover:text-blue-600 hover:bg-slate-50'}`}
-                                        >
-                                        LIMPAR
-                                        </button>
-                                     </div>
-                                </div>
-                                {showTable ? (
-                                    <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                        <table className="w-full text-left">
-                                            <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
-                                                <tr>
-                                                    <th className="pl-4 pr-2 py-2.5">Cód. Interno</th>
-                                                    <th className="px-2 py-2.5">Med. Tubo</th>
-                                                    <th className="px-2 py-2.5">≠ Peças</th>
-                                                    <th className="px-2 py-2.5">Cruzeta</th>
-                                                    <th className="px-2 py-2.5">Med. Cruzeta</th>
-                                                    <th className="px-2 py-2.5">Observações</th>
-                                                    <th className="px-2 py-2.5 text-right">Valor</th>
-                                                    <th className="px-2 py-2.5 text-center">Qtd.</th>
-                                                    <th className="px-2 py-2.5 text-center pr-4">ADIC.</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
-                                                {filteredCardanItems.map((item, idx) => (
-                                                    <CardanRow 
-                                                        key={`${item.codInterno}-${idx}`}
-                                                        item={item}
-                                                        quantity={cardanQuantities[item.codInterno] || 0}
-                                                        onIncrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: (p[item.codInterno] || 0) + 1}))}
-                                                        onDecrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: Math.max(0, (p[item.codInterno] || 0) - 1)}))}
-                                                        onAddToCart={() => handleAddToCart(item, 'catraca', item.valor, Math.max(1, cardanQuantities[item.codInterno] || 0))}
-                                                        isInCart={cartItems.some(i => i.id === item.codInterno)}
-                                                        isDarkMode={isDarkMode}
-                                                    />
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        {showTable ? (
+                                            <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                                <table className="w-full text-left">
+                                                    <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+                                                        {selectedCardanModel?.toUpperCase().includes('MASCARELLO') ? (
+                                                            <tr>
+                                                                <th className="pl-4 pr-2 py-2.5">Cód. Interno</th>
+                                                                <th className="px-2 py-2.5">Cód. Mascarello</th>
+                                                                <th className="px-2 py-2.5">Descrição</th>
+                                                                <th className="px-2 py-2.5">Observações</th>
+                                                                <th className="px-2 py-2.5 text-right">Valor</th>
+                                                                <th className="px-2 py-2.5 text-center">Qtd.</th>
+                                                                <th className="px-2 py-2.5 text-center pr-4">ADIC.</th>
+                                                            </tr>
+                                                        ) : (
+                                                            <tr>
+                                                                <th className="pl-4 pr-2 py-2.5">Cód. Interno</th>
+                                                                <th className="px-2 py-2.5">Med. Tubo</th>
+                                                                <th className="px-2 py-2.5">≠ Peças</th>
+                                                                <th className="px-2 py-2.5">Cruzeta</th>
+                                                                <th className="px-2 py-2.5">Med. Cruzeta</th>
+                                                                <th className="px-2 py-2.5">Observações</th>
+                                                                <th className="px-2 py-2.5 text-right">Valor</th>
+                                                                <th className="px-2 py-2.5 text-center">Qtd.</th>
+                                                                <th className="px-2 py-2.5 text-center pr-4">ADIC.</th>
+                                                            </tr>
+                                                        )}
+                                                    </thead>
+                                                    <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
+                                                        {filteredCardanItems.map((item, idx) => (
+                                                            <CardanRow 
+                                                                key={`${item.codInterno}-${idx}`}
+                                                                item={item}
+                                                                quantity={cardanQuantities[item.codInterno] || 0}
+                                                                onIncrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: (p[item.codInterno] || 0) + 1}))}
+                                                                onDecrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: Math.max(0, (p[item.codInterno] || 0) - 1)}))}
+                                                                onAddToCart={() => handleAddToCart(item, 'catraca', item.valor, Math.max(1, cardanQuantities[item.codInterno] || 0))}
+                                                                isInCart={cartItems.some(i => i.id === item.codInterno)}
+                                                                isDarkMode={isDarkMode}
+                                                                layoutMode={selectedCardanModel?.toUpperCase().includes('MASCARELLO') ? 'mascarello' : 'default'}
+                                                            />
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12 text-slate-400">
+                                                <CardanIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                                                <p className="text-xs">{selectedCardanVehicle ? `Nenhum item encontrado para ${selectedCardanVehicle}` : "Selecione um modelo e veículo acima para visualizar as peças."}</p>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : (
-                                    <div className="text-center py-12 text-slate-400">
-                                        <CardanIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                                        <p className="text-xs">{selectedCardanVehicle ? `Nenhum item encontrado para ${selectedCardanVehicle}` : "Selecione um modelo e veículo acima para visualizar as peças."}</p>
-                                    </div>
+                                    // *** SEÇÃO MASCARELLO ***
+                                    <>
+                                        {/* Filtros: Cód. Cliente e Tipo */}
+                                        <div className="flex flex-col md:flex-row gap-4 mb-4 items-end">
+                                            <div className="w-full md:w-1/2">
+                                                <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
+                                                SELECIONAR CÓDIGO CLIENTE
+                                                </label>
+                                                <div className="relative">
+                                                <select 
+                                                    value={selectedMascarelloClient} 
+                                                    onChange={e => { setSelectedMascarelloClient(e.target.value); setSelectedMascarelloType(''); }} 
+                                                    className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'}`}
+                                                >
+                                                    <option value="">Selecione um Código...</option>
+                                                    {uniqueMascarelloClients.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                                <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                                                    <ChevronRightIcon className="w-4 h-4 rotate-90" />
+                                                </div>
+                                                </div>
+                                            </div>
+                                            <div className="w-full md:w-1/2">
+                                                <label className={`block text-[9px] font-bold uppercase mb-1 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-800'}`}>
+                                                TIPO
+                                                </label>
+                                                <div className="relative">
+                                                <select 
+                                                    value={selectedMascarelloType} 
+                                                    onChange={e => setSelectedMascarelloType(e.target.value)} 
+                                                    disabled={!selectedMascarelloClient}
+                                                    className={`w-full h-9 pl-3 pr-8 rounded-lg appearance-none outline-none font-semibold text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-300 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'} ${!selectedMascarelloClient ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                >
+                                                    <option value="">Selecione o Tipo...</option>
+                                                    <option value="Cardan Novo">Cardan Novo</option>
+                                                    <option value="Serviço de Alongamento">Serviço de Alongamento</option>
+                                                    <option value="Serviço de Encurtamento">Serviço de Encurtamento</option>
+                                                </select>
+                                                <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                                                    <ChevronRightIcon className="w-4 h-4 rotate-90" />
+                                                </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Barra de Busca Específica */}
+                                        <div className="flex gap-3 items-center mb-6">
+                                            <div className="relative flex-1">
+                                                <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Pesquisar por Cód. Interno ou Cód. Cliente..." 
+                                                    value={searchTerm} 
+                                                    onChange={e => setSearchTerm(e.target.value)} 
+                                                    className={`w-full h-9 pl-10 pr-10 rounded-lg outline-none font-medium text-[11px] transition-all shadow-sm border ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-200 placeholder-slate-500 focus:ring-1 focus:ring-blue-500' : 'bg-white border-slate-200 text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'}`} 
+                                                />
+                                                {searchTerm && (
+                                                    <button 
+                                                        onClick={() => setSearchTerm('')}
+                                                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                                                    >
+                                                        <span className="text-[10px] font-bold">X</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <button 
+                                                onClick={handleClearFilters}
+                                                className={`h-9 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors whitespace-nowrap border ${isDarkMode ? 'text-slate-400 border-slate-700 hover:text-white hover:bg-slate-800' : 'text-slate-500 border-slate-200 hover:text-blue-600 hover:bg-slate-50'}`}
+                                                >
+                                                LIMPAR
+                                            </button>
+                                        </div>
+
+                                        {/* Box de Observações */}
+                                        {selectedMascarelloObservation && (
+                                            <div className={`mb-4 p-3 rounded-lg border flex gap-3 animate-fade-in-up shadow-sm ${isDarkMode ? 'bg-amber-900/20 border-amber-900/40' : 'bg-amber-50 border-amber-200'}`}>
+                                                <InfoIcon className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                                <div>
+                                                    <h3 className="text-[10px] font-bold text-amber-700 uppercase mb-0.5">Observações</h3>
+                                                    <p className={`text-[11px] leading-snug whitespace-pre-wrap ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{selectedMascarelloObservation}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Tabela Mascarello */}
+                                        {showTable ? (
+                                            <div className={`border rounded-xl overflow-hidden shadow-sm animate-fade-in-up ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                                <table className="w-full text-left">
+                                                    <thead className={`border-b font-bold uppercase tracking-wider text-[9px] ${isDarkMode ? 'bg-slate-900/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
+                                                        <tr>
+                                                            <th className="pl-4 pr-2 py-2.5">Cód. Interno</th>
+                                                            <th className="px-2 py-2.5">Cód. Cliente</th>
+                                                            <th className="px-2 py-2.5">Descrição</th>
+                                                            <th className="px-2 py-2.5 text-right">Valor</th>
+                                                            <th className="px-2 py-2.5 text-center">Qtd.</th>
+                                                            <th className="px-2 py-2.5 text-center pr-4">ADIC.</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700' : 'divide-slate-100'}`}>
+                                                        {filteredMascarelloItems.map((item, idx) => (
+                                                            <CardanRow 
+                                                                key={`${item.codInterno}-${idx}`}
+                                                                item={item}
+                                                                quantity={cardanQuantities[item.codInterno] || 0}
+                                                                onIncrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: (p[item.codInterno] || 0) + 1}))}
+                                                                onDecrement={() => setCardanQuantities(p => ({...p, [item.codInterno]: Math.max(0, (p[item.codInterno] || 0) - 1)}))}
+                                                                onAddToCart={() => handleAddToCart(item, 'catraca', getMascarelloPrice(item, selectedMascarelloType), Math.max(1, cardanQuantities[item.codInterno] || 0))}
+                                                                isInCart={cartItems.some(i => i.id === item.codInterno)}
+                                                                isDarkMode={isDarkMode}
+                                                                layoutMode='mascarello'
+                                                                priceToDisplay={getMascarelloPrice(item, selectedMascarelloType)}
+                                                            />
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12 text-slate-400">
+                                                <MIcon className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                                                <p className="text-xs">Selecione o Código do Cliente e o Tipo para visualizar os dados.</p>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
 
                         {activeTab === 'kit3eixo' && (
+                            // ... (Conteúdo de Kit3Eixo mantido)
                             <div className="animate-fade-in-up">
                                 {renderControls(unique3EixoVehicles, "Modelo do Veículo", true, false)}
                                 <div className="flex items-center gap-6 mb-2 px-1 -mt-3">
@@ -1517,6 +1790,7 @@ const App: React.FC = () => {
                         )}
 
                         {activeTab === 'adaptacoes' && (
+                            // ... (Conteúdo de Adaptações mantido)
                             <div className="animate-fade-in-up">
                                 <div className="flex flex-col mb-4">
                                     <div className="relative">
@@ -1538,6 +1812,7 @@ const App: React.FC = () => {
                         )}
 
                         {activeTab === 'pedidos' && (
+                            // ... (Conteúdo de Pedidos mantido)
                             <div className="animate-fade-in-up space-y-4">
                                 {cartItems.length > 0 && (
                                     <div className={`p-5 rounded-xl border shadow-sm ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>

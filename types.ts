@@ -67,6 +67,16 @@ export interface CardanData {
   valor: string;
 }
 
+export interface MascarelloData {
+  codInterno: string;
+  codCliente: string;
+  descricao: string;
+  observacao: string;
+  valorNovo: string;
+  valorAlongar: string;
+  valorEncurtar: string;
+}
+
 export interface UserCredential {
   usuario: string;
   senha: string;
